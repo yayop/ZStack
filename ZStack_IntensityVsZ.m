@@ -80,8 +80,8 @@ for v = 1:nVids
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
-xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',16);
-ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',16);
+xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
+ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
@@ -95,6 +95,7 @@ cb = colorbar(ax1);
 cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'tex'; % keep ticks horizontal/unstyled
+cb.Label.FontSize = 17;
 cb.Color = [0 0 0];
 cb.EdgeColor = 'k';
 % Three integer ticks across the span
@@ -122,11 +123,11 @@ if numel(timeVals) >= 2
     if zspan == 0, zspan = 1; end
     tText = min(timeVals) + 0.05*tspan;
     zText = max(zMaxList(validTZ)) + 0.05*zspan;
-    text(ax2, tText, zText, sprintf('$|v| =$ %.1f ($\\mu$m/min)', abs(pfit(1))), ...
-        'FontSize',12,'Color',fitColor,'Interpreter','latex');
+    title(ax2, sprintf('$|v| =$ %.1f ($\\mu$m/min)', abs(pfit(1))), ...
+        'Interpreter','latex','Color',fitColor,'FontSize',17);
 end
-xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',16);
-ylabel(ax2,'$z^*$($\mu$m)','Interpreter','latex','FontSize',16);
+xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',17);
+ylabel(ax2,'$z^*$($\mu$m)','Interpreter','latex','FontSize',17);
 set(ax2,'FontSize',12);
 axis(ax2,'square');
 pbaspect(ax2,[1 1 1]);
