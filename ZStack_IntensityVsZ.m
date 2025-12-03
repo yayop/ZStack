@@ -87,6 +87,7 @@ colormap(ax1,colors);
 cb = colorbar(ax1);
 cb.Label.String = cbLabel;
 cb.TickLabelInterpreter = 'none';
+cb.EdgeColor = 'none'; % remove colorbar frame/bands
 if strcmp(cbLabel,'Video index')
     cb.Ticks = 1:nVids;
     cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
