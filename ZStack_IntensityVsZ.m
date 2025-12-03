@@ -19,8 +19,9 @@ end
 %%
 nVids = numel(roiData);
 [colors, cbLabel, relTimes, relSpan] = computeColors(roiData);
-figure('Name','Mean ROI intensity vs Z','Color','w');
-hold on;
+fig = figure('Name','Mean ROI intensity vs Z','Color','w');
+tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
+ax1 = nexttile; hold(ax1,'on');
 
 % Reference z0 from latest curve (interpolated max)
 refZ = 0;
@@ -36,6 +37,8 @@ if ~isempty(relTimes)
 end
 
 minZall = inf; maxZall = -inf;
+zMaxList = nan(nVids,1);
+tList = nan(nVids,1);
 for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
@@ -51,32 +54,37 @@ for v = 1:nVids
     end
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
-    plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
-    scatter(zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
+    plot(ax1, zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
+    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
     % Mark max point (interpolated)
     if numel(meanVals) > 2 && numel(zVals) > 2
         [zMaxInterp, yMaxInterp] = interpMax(zVals, meanVals);
-        scatter(zMaxInterp, yMaxInterp, 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
+        scatter(ax1, zMaxInterp, yMaxInterp, 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
             'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        zMaxList(v) = zMaxInterp;
     else
         [~, imax] = max(meanVals);
-        scatter(zVals(imax), meanVals(imax), 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
+        scatter(ax1, zVals(imax), meanVals(imax), 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
             'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        zMaxList(v) = zVals(imax);
+    end
+    if ~isempty(relTimes)
+        tList(v) = relTimes(v);
     end
 end
-xline(0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
+xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
-xlabel('$z~(\\mu m)$','Interpreter','latex','FontSize',16);
-ylabel('$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
-set(gca,'FontSize',12);
-axis square;
-pbaspect([1 1 1]);
+xlabel(ax1,'$z~(\\mu m)$','Interpreter','latex','FontSize',16);
+ylabel(ax1,'$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
+set(ax1,'FontSize',12);
+axis(ax1,'square');
+pbaspect(ax1,[1 1 1]);
 if isfinite(minZall) && isfinite(maxZall)
-    xlim([minZall maxZall]);
+    xlim(ax1,[minZall maxZall]);
 end
-box on;
-colormap(colors);
-cb = colorbar;
+box(ax1,'on');
+colormap(ax1,colors);
+cb = colorbar(ax1);
 cb.Label.String = cbLabel;
 cb.TickLabelInterpreter = 'none';
 if strcmp(cbLabel,'Video index')
@@ -88,7 +96,17 @@ else
     cb.TickLabels = arrayfun(@(t) sprintf('%.1f', t), cb.Ticks, 'UniformOutput', false);
 end
 
-hold off;
+% Second subplot: z-peak vs time
+ax2 = nexttile; hold(ax2,'on');
+validTZ = ~isnan(zMaxList) & ~isnan(tList);
+scatter(ax2, tList(validTZ), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
+plot(ax2, tList(validTZ), zMaxList(validTZ), 'Color',[0.2 0.2 0.2], 'LineStyle','-', 'LineWidth',0.8);
+xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
+ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
+set(ax2,'FontSize',12);
+box(ax2,'on');
+
+hold(ax1,'off'); hold(ax2,'off');
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
