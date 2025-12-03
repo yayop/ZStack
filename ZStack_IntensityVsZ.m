@@ -39,13 +39,13 @@ fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile; hold(ax1,'on');
 
-% Reference z0 from latest curve (parabolic peak)
+% Reference z0 from latest curve (gaussian peak if possible)
 refZ = 0;
 if ~isempty(relTimes)
     [~, refVid] = max(relTimes);
     [refMean, refZvals] = computeMeanZ(roiData(refVid));
     if ~isempty(refMean) && ~isempty(refZvals)
-        [refZ, ~] = parabolicPeak(refZvals, refMean);
+        [refZ, ~] = gaussianPeak(refZvals, refMean);
     end
 end
 
@@ -62,8 +62,8 @@ for v = 1:nVids
     meanVals = meanVals(order);
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
-    % Peak via parabolic fit
-    [zMark, yMark] = parabolicPeak(zVals, meanVals);
+    % Peak via gaussian fit (fallback to parabolic if needed)
+    [zMark, yMark] = gaussianPeak(zVals, meanVals);
     zMaxList(v) = zMark;
     if ~isempty(relTimes)
         tList(v) = relTimes(v);
@@ -272,39 +272,50 @@ end
 zc = sum(zVals(:).*yVals(:)) ./ sum(yVals(:));
 end
 
-function [zPeak, yPeak] = parabolicPeak(zVals, yVals)
-zVals = zVals(:);
-yVals = yVals(:);
+function [zPeak, yPeak] = gaussianPeak(zVals, yVals)
+zVals = zVals(:); yVals = yVals(:);
 n = min(numel(zVals), numel(yVals));
 zVals = zVals(1:n); yVals = yVals(1:n);
 fin = ~isnan(zVals) & ~isnan(yVals);
 zVals = zVals(fin); yVals = yVals(fin);
-if numel(zVals) < 3
+if numel(zVals) < 3 || all(yVals<=0)
     [yPeak, idx] = max(yVals);
     zPeak = zVals(idx);
     return;
 end
 [~, imax] = max(yVals);
-idxRange = max(1, imax-1):min(numel(zVals), imax+1);
-zSeg = zVals(idxRange);
-ySeg = yVals(idxRange);
-if numel(zSeg) < 3
+win = max(1, imax-2):min(numel(zVals), imax+2);
+zSeg = zVals(win);
+ySeg = yVals(win);
+if numel(zSeg) < 3 || all(ySeg<=0)
     [yPeak, idx] = max(yVals);
     zPeak = zVals(idx);
     return;
 end
-p = polyfit(zSeg, ySeg, 2);
-if p(1) ~= 0
-    zVert = -p(2)/(2*p(1));
-    yVert = polyval(p, zVert);
-else
-    zVert = zSeg(2);
-    yVert = ySeg(2);
-end
-if zVert < min(zSeg) || zVert > max(zSeg)
-    [yPeak, idx] = max(ySeg);
-    zPeak = zSeg(idx);
-else
+% Initial guesses
+a0 = max(ySeg) - min(ySeg);
+d0 = min(ySeg);
+b0 = zSeg(ySeg==max(ySeg));
+c0 = std(zSeg);
+gfun = @(p,z) p(1).*exp(-((z-p(2)).^2)./(2*p(3)^2)) + p(4);
+p0 = [a0, b0(1), max(c0, eps), d0];
+lb = [0, min(zSeg), eps, -Inf];
+ub = [Inf, max(zSeg), Inf, Inf];
+try
+    opts = optimset('Display','off');
+    p = lsqcurvefit(gfun, p0, zSeg, ySeg, lb, ub, opts);
+    zPeak = p(2);
+    yPeak = gfun(p, zPeak);
+catch
+    % fallback parabola
+    p2 = polyfit(zSeg, ySeg, 2);
+    if p2(1) ~= 0
+        zVert = -p2(2)/(2*p2(1));
+        yVert = polyval(p2, zVert);
+    else
+        [yVert, idx] = max(ySeg);
+        zVert = zSeg(idx);
+    end
     zPeak = zVert;
     yPeak = yVert;
 end
