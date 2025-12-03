@@ -188,7 +188,7 @@ for k = 1:nF
     if isempty(img)
         meanVals(k) = NaN;
     else
-        meanVals(k) = mean(double(img(:)),'omitnan');
+        meanVals(k) = median(double(img(:)),'omitnan');
     end
 end
 if isfield(vid,'zPos')
