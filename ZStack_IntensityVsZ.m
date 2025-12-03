@@ -117,7 +117,7 @@ cb.TickLabels = arrayfun(@(t)sprintf('%.1f', t), tickVals, 'UniformOutput', fals
 ax2 = nexttile; hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
-scatter(ax2, timeVals, zMaxList(validTZ), 36, colorsPlot(validTZ,:), 'filled');
+scatter(ax2, timeVals, zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
