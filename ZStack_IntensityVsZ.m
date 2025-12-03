@@ -120,7 +120,7 @@ if numel(timeVals) >= 2
     if zspan == 0, zspan = 1; end
     tText = min(timeVals) + 0.05*tspan;
     zText = max(zMaxList(validTZ)) + 0.05*zspan;
-    text(ax2, tText, zText, sprintf('v = %.3f ($\\mu$m/min)', pfit(1)), ...
+    text(ax2, tText, zText, sprintf('$v =$ %.3f ($\\mu$m/min)', pfit(1)), ...
         'FontSize',12,'Color',[0 0.2 0.8],'Interpreter','latex');
 end
 xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',16);
@@ -151,7 +151,7 @@ function [colors, label, relTimes, relSpan, baseCmap] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    baseCmap = abyssPalette(256);
+    baseCmap = autumn(256);
     colors = baseCmap(round(linspace(1,size(baseCmap,1), n)),:);
     label = 'Video index';
     relTimes = [];
@@ -173,7 +173,7 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-baseCmap = abyssPalette(256);
+baseCmap = autumn(256);
 idx = 1 + round(tnorm*(size(baseCmap,1)-1));
 colors = baseCmap(idx,:);
 end
