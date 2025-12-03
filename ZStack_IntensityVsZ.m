@@ -38,7 +38,7 @@ end
 
 minZall = inf; maxZall = -inf;
 zMaxList = nan(nVids,1);
-tList = nan(nVids,1);
+tList = duration(zeros(nVids,1),0,0); % store as duration
 for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
@@ -98,9 +98,9 @@ end
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
-validTZ = ~isnan(zMaxList) & ~isnan(tList);
-scatter(ax2, tList(validTZ), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
-plot(ax2, tList(validTZ), zMaxList(validTZ), 'Color',[0.2 0.2 0.2], 'LineStyle','-', 'LineWidth',0.8);
+validTZ = ~isnan(zMaxList) & ~isnat(tList);
+scatter(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
+plot(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 'Color',[0.2 0.2 0.2], 'LineStyle','-', 'LineWidth',0.8);
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
