@@ -39,13 +39,13 @@ fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile; hold(ax1,'on');
 
-% Reference z0 from latest curve (centroid)
+% Reference z0 from latest curve (parabolic peak)
 refZ = 0;
 if ~isempty(relTimes)
     [~, refVid] = max(relTimes);
     [refMean, refZvals] = computeMeanZ(roiData(refVid));
     if ~isempty(refMean) && ~isempty(refZvals)
-        refZ = centroidZ(refZvals, refMean);
+        [refZ, ~] = parabolicPeak(refZvals, refMean);
     end
 end
 
@@ -62,14 +62,9 @@ for v = 1:nVids
     meanVals = meanVals(order);
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
-    % Store peaks for all
-    if numel(meanVals) > 2 && numel(zVals) > 2
-        [zMaxInterp, yMaxInterp] = interpMax(zVals, meanVals);
-        zMaxList(v) = zMaxInterp;
-    else
-        [~, imax] = max(meanVals);
-        zMaxList(v) = zVals(imax);
-    end
+    % Peak via parabolic fit
+    [zMark, yMark] = parabolicPeak(zVals, meanVals);
+    zMaxList(v) = zMark;
     if ~isempty(relTimes)
         tList(v) = relTimes(v);
     end
@@ -78,9 +73,7 @@ for v = 1:nVids
     vidIdxPlot = find(idxPlot==v,1,'first');
     plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.8);
     scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
-    % Mark centroid point
-    zMark = centroidZ(zVals, meanVals);
-    zMaxList(v) = zMark;
+    % Mark peak point
     yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
         'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
@@ -118,7 +111,7 @@ timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
     'MarkerFaceColor', 'y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
-ylabel(ax2,'$z_{\\mathrm{cm}}~(\\mu m)$','Interpreter','latex','FontSize',16);
+ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
 axis(ax2,'square');
 pbaspect(ax2,[1 1 1]);
@@ -277,4 +270,42 @@ if isempty(zVals) || all(yVals<=0)
     return;
 end
 zc = sum(zVals(:).*yVals(:)) ./ sum(yVals(:));
+end
+
+function [zPeak, yPeak] = parabolicPeak(zVals, yVals)
+zVals = zVals(:);
+yVals = yVals(:);
+n = min(numel(zVals), numel(yVals));
+zVals = zVals(1:n); yVals = yVals(1:n);
+fin = ~isnan(zVals) & ~isnan(yVals);
+zVals = zVals(fin); yVals = yVals(fin);
+if numel(zVals) < 3
+    [yPeak, idx] = max(yVals);
+    zPeak = zVals(idx);
+    return;
+end
+[~, imax] = max(yVals);
+idxRange = max(1, imax-1):min(numel(zVals), imax+1);
+zSeg = zVals(idxRange);
+ySeg = yVals(idxRange);
+if numel(zSeg) < 3
+    [yPeak, idx] = max(yVals);
+    zPeak = zVals(idx);
+    return;
+end
+p = polyfit(zSeg, ySeg, 2);
+if p(1) ~= 0
+    zVert = -p(2)/(2*p(1));
+    yVert = polyval(p, zVert);
+else
+    zVert = zSeg(2);
+    yVert = ySeg(2);
+end
+if zVert < min(zSeg) || zVert > max(zSeg)
+    [yPeak, idx] = max(ySeg);
+    zPeak = zSeg(idx);
+else
+    zPeak = zVert;
+    yPeak = yVert;
+end
 end
