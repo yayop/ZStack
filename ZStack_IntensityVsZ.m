@@ -95,6 +95,7 @@ cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'latex';
 cb.EdgeColor = 'none';
+cb.Limits = [0 relSpan];
 caxis(ax1,[0 relSpan]);
 if relSpan >= 82
     tickVals = [0 41 82];
@@ -167,6 +168,9 @@ relTimes = times - t0;
 mins = min(relTimes(valid));
 maxs = max(relTimes(valid));
 relSpan = minutes(maxs - mins);
+if relSpan <= 0
+    relSpan = eps;
+end
 if mins == maxs
     tnorm = zeros(n,1);
 else
