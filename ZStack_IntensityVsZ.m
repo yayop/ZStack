@@ -175,6 +175,7 @@ for i = 1:n
         end
     end
 end
+end
 
 function cmap = getAbyssColormap(n)
 %GETABYSSCOLORMAP Try to use abyss if installed; fall back to parula.
@@ -203,6 +204,5 @@ if size(cmap,1) ~= n
     xo = linspace(0,1,n);
     xi = linspace(0,1,size(cmap,1));
     cmap = interp1(xi, cmap, xo, 'linear');
-end
 end
 end
