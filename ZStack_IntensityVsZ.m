@@ -98,7 +98,7 @@ function [colors, label, relTimes, relSpan] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    colors = abyss(n);
+    colors = winter(n);
     label = 'Video index';
     relTimes = [];
     relSpan = 0;
@@ -116,7 +116,7 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-colors = jet(256);
+colors = winter(256);
 idx = 1 + round(tnorm*(size(colors,1)-1));
 colors = colors(idx,:);
 end
