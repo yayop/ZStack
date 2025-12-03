@@ -38,7 +38,8 @@ for v = 1:nVids
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
     zVals = zVals - refZ;
-    plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 1.5);
+    plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
+    scatter(zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
 end
 
 xlabel('$z~(\\mu m)$','Interpreter','latex','FontSize',16);
