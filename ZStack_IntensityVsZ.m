@@ -127,6 +127,36 @@ for i = 1:n
 end
 end
 
+function [meanVals, zVals] = computeMeanZ(vid)
+meanVals = [];
+zVals = [];
+if ~isfield(vid,'frames') || isempty(vid.frames), return; end
+frames = vid.frames;
+nF = numel(frames);
+if nF == 0, return; end
+meanVals = nan(nF,1);
+for k = 1:nF
+    img = frames{k};
+    if isempty(img)
+        meanVals(k) = NaN;
+    else
+        meanVals(k) = mean(double(img(:)),'omitnan');
+    end
+end
+if isfield(vid,'zPos')
+    zVals = vid.zPos;
+end
+if isempty(zVals) || numel(zVals) ~= nF || all(isnan(zVals))
+    zVals = 1:nF;
+else
+    zVals = zVals(:).';
+    if numel(zVals) ~= nF
+        zVals = zVals(1:min(end,nF));
+        meanVals = meanVals(1:numel(zVals));
+    end
+end
+end
+
 function cmap = abyssPalette(n)
 % Use installed abyss colormap (assumed to exist)
 if nargin < 1, n = 256; end
