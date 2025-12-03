@@ -110,6 +110,12 @@ validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
     'MarkerFaceColor', 'y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+if numel(timeVals) >= 2
+    pfit = polyfit(timeVals, zMaxList(validTZ), 1);
+    tLine = linspace(min(timeVals), max(timeVals), 100);
+    zLine = polyval(pfit, tLine);
+    plot(ax2, tLine, zLine, '--', 'Color',[0 0 0], 'LineWidth', 1.2);
+end
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
