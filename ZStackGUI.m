@@ -207,7 +207,13 @@ resetAxes();
     end
 
     function [stack, frameCount, meta] = readNd2(filePath)
-        ensureBioFormatsPath();
+        if ~ensureBioFormatsPath() || ~exist('bfopen','file')
+            showAlert('Bio-Formats (bfmatlab) not found. Please place bfmatlab with bfopen.m in the app folder.');
+            stack = [];
+            frameCount = 0;
+            meta = struct('deltaT',[],'zPos',[],'acqDate','');
+            return;
+        end
         stack = [];
         frameCount = 0;
         meta = struct('deltaT',[],'zPos',[],'acqDate','');
@@ -763,6 +769,13 @@ resetAxes();
         else
             if ~bfWarned
                 warning('bfmatlab folder not found at %s. Please place Bio-Formats there.', bfDir);
+                bfWarned = true;
+            end
+        end
+        if ok && ~exist('bfopen','file')
+            ok = false;
+            if ~bfWarned
+                warning('bfopen not found even after adding bfmatlab. Check that bfmatlab contains bfopen.m.');
                 bfWarned = true;
             end
         end
