@@ -76,7 +76,7 @@ for v = 1:nVids
     % Mark peak point
     yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
-        'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        'MarkerFaceColor', [0 0.4 1], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -107,12 +107,12 @@ ax2 = nexttile; hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
-    'MarkerFaceColor', 'y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+    'MarkerFaceColor', [0 0.4 1], 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 if numel(timeVals) >= 2
     pfit = polyfit(timeVals, zMaxList(validTZ), 1);
     tLine = linspace(min(timeVals), max(timeVals), 100);
     zLine = polyval(pfit, tLine);
-    plot(ax2, tLine, zLine, 'Color',[0 0.2 0.8], 'LineWidth', 2);
+    plot(ax2, tLine, zLine, 'Color',[1 0.4 0], 'LineWidth', 2);
     % annotate slope (velocity)
     tspan = range(timeVals);
     zspan = range(zMaxList(validTZ));
