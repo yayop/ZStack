@@ -87,7 +87,6 @@ for v = 1:nVids
     scatter(ax1, zMark, yMark, 60, '*', 'MarkerEdgeColor', [0 0 0], ...
         'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 end
-end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
 xlabel(ax1,'$z$ ($\mu$ m)','Interpreter','latex','FontSize',16);
