@@ -99,7 +99,7 @@ end
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
-validTZ = ~isnan(zMaxList) & ~isnat(tList);
+validTZ = ~isnan(zMaxList) & ~isnan(tList);
 scatter(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
 plot(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 'Color',[0.2 0.2 0.2], 'LineStyle','-', 'LineWidth',0.8);
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
