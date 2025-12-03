@@ -157,7 +157,18 @@ for i = 1:n
         t = vid.absTime;
         if iscell(t), try t = t{1}; end; end
         if isdatetime(t)
-            times(i) = t(1);
+            t0 = t(1);
+            if isdatetime(times) && ~isnat(t0)
+                % unify timezones by converting to UTC then removing tz
+                try
+                    if ~isempty(t0.TimeZone)
+                        t0 = datetime(t0,'TimeZone','UTC');
+                    end
+                    times(i) = datetime(t0,'TimeZone','');
+                catch
+                    times(i) = t0;
+                end
+            end
         elseif isnumeric(t) && ~isempty(t)
             % maybe seconds; treat as offset from 0
             times(i) = datetime(t(1), 'ConvertFrom','posixtime');
