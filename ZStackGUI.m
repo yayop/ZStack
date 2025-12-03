@@ -556,26 +556,6 @@ resetAxes();
         end
     end
 
-    function dt = parseAcqDate(dtStr)
-        dt = NaT;
-        if isempty(dtStr)
-            return;
-        end
-        try
-            dt = datetime(dtStr,'InputFormat','yyyy-MM-dd''T''HH:mm:ssXXX','TimeZone','local');
-        catch
-            try
-                dt = datetime(dtStr,'InputFormat','yyyy-MM-dd''T''HH:mm:ss.SSSXXX','TimeZone','local');
-            catch
-                try
-                    dt = datetime(dtStr,'TimeZone','local');
-                catch
-                    dt = NaT;
-                end
-            end
-        end
-    end
-
     function resetAxes()
         clearRoiHandle();
         resetRoiFields();
@@ -897,4 +877,27 @@ resetAxes();
         [~, base, ext] = fileparts(filePath);
         name = [base ext];
     end
+end
+
+function dt = parseAcqDate(dtStr)
+%PARSEACQDATE Parse acquisition date string from metadata into datetime.
+dt = NaT;
+if isempty(dtStr)
+    return;
+end
+try
+    dt = datetime(dtStr,'InputFormat','yyyy-MM-dd''T''HH:mm:ssXXX','TimeZone','local');
+    return;
+catch
+end
+try
+    dt = datetime(dtStr,'InputFormat','yyyy-MM-dd''T''HH:mm:ss.SSSXXX','TimeZone','local');
+    return;
+catch
+end
+try
+    dt = datetime(dtStr,'TimeZone','local');
+catch
+    dt = NaT;
+end
 end
