@@ -26,6 +26,15 @@ if nVids == 0
     error('No videos matched the median frame count filter.');
 end
 [colors, cbLabel, relTimes, relSpan, baseCmap] = computeColors(roiData);
+% Subsample curves to at most 14, approximately equispaced
+maxCurves = min(14, nVids);
+idxPlot = unique(round(linspace(1, nVids, maxCurves)));
+roiDataPlot = roiData(idxPlot);
+colorsPlot = colors(idxPlot,:);
+relTimesPlot = relTimes;
+if ~isempty(relTimesPlot)
+    relTimesPlot = relTimesPlot(idxPlot);
+end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile; hold(ax1,'on');
@@ -44,10 +53,10 @@ if ~isempty(relTimes)
 end
 
 minZall = inf; maxZall = -inf;
-zMaxList = nan(nVids,1);
-tList = duration(zeros(nVids,1),0,0); % store as duration
-for v = 1:nVids
-    vid = roiData(v);
+zMaxList = nan(numel(idxPlot),1);
+tList = duration(zeros(numel(idxPlot),1),0,0); % store as duration
+for v = 1:numel(idxPlot)
+    vid = roiDataPlot(v);
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
     zVals = zVals - refZ;
@@ -56,22 +65,22 @@ for v = 1:nVids
     meanVals = meanVals(order);
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
-    plot(ax1, zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
-    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
+    plot(ax1, zVals, meanVals, 'Color', colorsPlot(v,:), 'LineWidth', 0.8);
+    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
     % Mark max point (interpolated)
     if numel(meanVals) > 2 && numel(zVals) > 2
         [zMaxInterp, yMaxInterp] = interpMax(zVals, meanVals);
-        scatter(ax1, zMaxInterp, yMaxInterp, 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
-            'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        scatter(ax1, zMaxInterp, yMaxInterp, 60, '*', 'MarkerEdgeColor', [0 0 0], ...
+            'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
         zMaxList(v) = zMaxInterp;
     else
         [~, imax] = max(meanVals);
-        scatter(ax1, zVals(imax), meanVals(imax), 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
-            'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        scatter(ax1, zVals(imax), meanVals(imax), 60, '*', 'MarkerEdgeColor', [0 0 0], ...
+            'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
         zMaxList(v) = zVals(imax);
     end
-    if ~isempty(relTimes)
-        tList(v) = relTimes(v);
+    if ~isempty(relTimesPlot)
+        tList(v) = relTimesPlot(v);
     end
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
@@ -87,27 +96,26 @@ end
 box(ax1,'on');
 colormap(ax1,baseCmap);
 cb = colorbar(ax1);
-cb.Label.String = cbLabel;
+cb.Label.String = '$t$ (min)';
+cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'none';
-cb.EdgeColor = 'none'; % remove colorbar frame/bands
-if strcmp(cbLabel,'Video index')
-    cb.Ticks = 1:nVids;
-    cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
-else
-    cb.Label.String = 'time, t (min)';
-    cb.Ticks = linspace(0, relSpan, min(6,nVids));
-    cb.TickLabels = arrayfun(@(t) sprintf('%.1f', t), cb.Ticks, 'UniformOutput', false);
-end
+cb.EdgeColor = 'none';
+cb.Ticks = [0 41 82];
+cb.Limits = [0 max(max(cb.Ticks), relSpan)];
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
-scatter(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
+timeVals = minutes(tList(validTZ));
+scatter(ax2, timeVals, zMaxList(validTZ), 36, colorsPlot(validTZ,:), 'filled');
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
 axis(ax2,'square');
 pbaspect(ax2,[1 1 1]);
+if ~isempty(timeVals)
+    xlim(ax2,[min(timeVals) max(timeVals)]);
+end
 box(ax2,'on');
 
 hold(ax1,'off'); hold(ax2,'off');
