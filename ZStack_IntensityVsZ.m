@@ -81,8 +81,8 @@ for v = 1:nVids
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
-xlabel(ax1,'$z~(\\mu m)$','Interpreter','latex','FontSize',16);
-ylabel(ax1,'$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
+xlabel(ax1,'$z$ ($\mu$ m)','Interpreter','latex','FontSize',16);
+ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',16);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
@@ -106,7 +106,7 @@ end
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
-validTZ = ~isnan(zMaxList) & ~isnat(tList);
+validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 scatter(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
