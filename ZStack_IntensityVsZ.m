@@ -41,6 +41,11 @@ for v = 1:nVids
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
     zVals = zVals - refZ;
+    % Normalize by area under the curve
+    areaVal = trapz(zVals, meanVals);
+    if areaVal ~= 0 && isfinite(areaVal)
+        meanVals = meanVals ./ areaVal;
+    end
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
     plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
