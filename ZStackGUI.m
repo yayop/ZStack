@@ -15,6 +15,9 @@ app.roiHandle = [];
 app.roiListeners = event.listener.empty;
 app.histBins = 64;
 
+% Add Bio-Formats (bfmatlab) to the path at startup
+ensureBioFormatsPath();
+
 % ---- UI ---------------------------------------------------------------
 app.fig = uifigure('Name','ZStack GUI','Position',[100 100 1280 760]);
 mainGrid = uigridlayout(app.fig,[1 2]);
@@ -741,7 +744,10 @@ resetAxes();
         nFailed = n - numel(videosOut);
     end
 
-    function ensureBioFormatsPath()
+    function ok = ensureBioFormatsPath()
+        persistent bfWarned
+        if isempty(bfWarned), bfWarned = false; end
+        ok = false;
         baseDir = fileparts(mfilename('fullpath'));
         bfDir = fullfile(baseDir,'bfmatlab');
         if exist(bfDir,'dir')
@@ -752,6 +758,12 @@ resetAxes();
                 catch
                     % ignore; bfopen will throw if Java path is missing
                 end
+            end
+            ok = true;
+        else
+            if ~bfWarned
+                warning('bfmatlab folder not found at %s. Please place Bio-Formats there.', bfDir);
+                bfWarned = true;
             end
         end
     end
