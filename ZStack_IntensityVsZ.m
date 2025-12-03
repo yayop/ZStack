@@ -93,13 +93,13 @@ colormap(ax1,baseCmap);
 cb = colorbar(ax1);
 cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
-cb.TickLabelInterpreter = 'none';
+cb.TickLabelInterpreter = 'latex';
 cb.EdgeColor = 'none';
 caxis(ax1,[0 relSpan]);
-tickVals = [0 41 82];
-tickVals = tickVals(tickVals <= relSpan);
-if isempty(tickVals)
-    tickVals = [0 relSpan];
+if relSpan >= 82
+    tickVals = [0 41 82];
+else
+    tickVals = linspace(0, relSpan, 3);
 end
 cb.Ticks = tickVals;
 cb.TickLabels = arrayfun(@(t)sprintf('%.1f', t), tickVals, 'UniformOutput', false);
