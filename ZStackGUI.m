@@ -14,6 +14,7 @@ app.defaultRoot = '\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Li
 app.roiHandle = [];
 app.roiListeners = event.listener.empty;
 app.histBins = 64;
+app.saveDir = '';
 
 % Add Bio-Formats (bfmatlab) to the path at startup
 ensureBioFormatsPath();
@@ -156,6 +157,7 @@ resetAxes();
         if isequal(file,0)
             return;
         end
+        app.saveDir = path;
         addVideo(fullfile(path,file));
     end
 
@@ -172,6 +174,7 @@ resetAxes();
             return;
         end
         filePaths = cellfun(@(f,p)fullfile(f,p), {files.folder}, {files.name}, 'UniformOutput', false);
+        app.saveDir = folder;
         [newVideos, nFailed] = loadVideosParallel(filePaths);
         if isempty(newVideos)
             showAlert('No videos were loaded.');
@@ -198,6 +201,9 @@ resetAxes();
         app.videos(end+1) = vid; %#ok<AGROW>
         app.currVideoIdx = numel(app.videos);
         app.currFrame = 1;
+        if isempty(app.saveDir)
+            app.saveDir = fileparts(filePath);
+        end
         clearRoiHandle();
         resetRoiFields();
         updateVideoDropdown();
@@ -323,12 +329,12 @@ resetAxes();
             roiData(v).videoIndex = v;
         end
 
-        [file,path] = uiputfile('*.mat','Save cropped ROI frames', fullfile(getStartDir(), 'all_videos_roi.mat'));
-        if isequal(file,0)
-            return;
+        if isempty(app.saveDir) || ~exist(app.saveDir,'dir')
+            app.saveDir = getStartDir();
         end
-        save(fullfile(path,file),'roiData','-v7.3');
-        app.statusLabel.Text = sprintf('Saved %d video(s) ROI frames to %s', nVids, file);
+        outFile = fullfile(app.saveDir, 'all_videos_roi.mat');
+        save(outFile,'roiData','-v7.3');
+        app.statusLabel.Text = sprintf('Saved %d video(s) ROI frames to %s', nVids, outFile);
     end
 
     function onNextVideo()
