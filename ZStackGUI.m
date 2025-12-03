@@ -827,8 +827,8 @@ resetAxes();
                                     keys = md.keySet.toArray;
                                     ts = nan(frameCount,1);
                                     for ii = 1:numel(keys)
-                                        k = char(keys(ii));
-                                        if contains(lower(k),'timestamp')
+                                    keyStr = char(keys(ii));
+                                        if contains(lower(keyStr),'timestamp')
                                             val = md.get(keys(ii));
                                             vnum = NaN;
                                             if isjava(val) && isa(val,'java.lang.Number')
@@ -839,7 +839,7 @@ resetAxes();
                                                 vnum = double(val);
                                             end
                                             if ~isnan(vnum)
-                                                idxNum = regexp(k,'\d+','match');
+                                                idxNum = regexp(keyStr,'\d+','match');
                                                 if ~isempty(idxNum)
                                                     j = str2double(idxNum{end});
                                                     if j >= 1 && j <= frameCount
