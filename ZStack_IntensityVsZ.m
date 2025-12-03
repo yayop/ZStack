@@ -76,7 +76,7 @@ for v = 1:nVids
     % Mark peak point
     yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
-        'MarkerFaceColor', [0 0.4 1], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -107,12 +107,13 @@ ax2 = nexttile; hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
-    'MarkerFaceColor', [0 0.4 1], 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+    'MarkerFaceColor', colors(validTZ,:), 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 if numel(timeVals) >= 2
     pfit = polyfit(timeVals, zMaxList(validTZ), 1);
     tLine = linspace(min(timeVals), max(timeVals), 100);
     zLine = polyval(pfit, tLine);
-    plot(ax2, tLine, zLine, 'Color',[1 0.4 0], 'LineWidth', 2);
+    fitColor = [1 0.4 0];
+    plot(ax2, tLine, zLine, 'Color',fitColor, 'LineWidth', 2);
     % annotate slope (velocity)
     tspan = range(timeVals);
     zspan = range(zMaxList(validTZ));
@@ -121,7 +122,7 @@ if numel(timeVals) >= 2
     tText = min(timeVals) + 0.05*tspan;
     zText = max(zMaxList(validTZ)) + 0.05*zspan;
     text(ax2, tText, zText, sprintf('$v =$ %.3f ($\\mu$m/min)', pfit(1)), ...
-        'FontSize',12,'Color',[0 0.2 0.8],'Interpreter','latex');
+        'FontSize',12,'Color',fitColor,'Interpreter','latex');
 end
 xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z^*$($\mu$m)','Interpreter','latex','FontSize',16);
@@ -151,7 +152,7 @@ function [colors, label, relTimes, relSpan, baseCmap] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    baseCmap = autumn(256);
+    baseCmap = winter(256);
     colors = baseCmap(round(linspace(1,size(baseCmap,1), n)),:);
     label = 'Video index';
     relTimes = [];
@@ -173,7 +174,7 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-baseCmap = autumn(256);
+baseCmap = winter(256);
 idx = 1 + round(tnorm*(size(baseCmap,1)-1));
 colors = baseCmap(idx,:);
 end
