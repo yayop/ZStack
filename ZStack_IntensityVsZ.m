@@ -92,6 +92,7 @@ box(ax1,'on');
 colormap(ax1, baseCmap);
 caxis(ax1,[0 relSpan]);
 cb = colorbar(ax1);
+cb.Limits = [0 relSpan];
 cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'tex'; % keep ticks horizontal/unstyled
@@ -102,6 +103,14 @@ cb.EdgeColor = 'k';
 tickVals = linspace(0, relSpan, 3);
 cb.Ticks = tickVals;
 cb.TickLabels = arrayfun(@(t)sprintf('%d', round(t)), tickVals, 'UniformOutput', false);
+% Place label above the colorbar
+cb.Label.Rotation = 0;
+cb.Label.HorizontalAlignment = 'center';
+cb.Label.VerticalAlignment = 'bottom';
+ylims = cb.Limits;
+yrng = diff(ylims);
+if yrng <= 0, yrng = max(relSpan, eps); end
+cb.Label.Position = [mean(ylims), ylims(2) + 0.08*yrng, 0];
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
