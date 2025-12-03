@@ -98,7 +98,7 @@ function [colors, label, relTimes, relSpan] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    colors = jet(n);
+    colors = abyss(n);
     label = 'Video index';
     relTimes = [];
     relSpan = 0;
@@ -192,8 +192,7 @@ end
 end
 
 function [zPeak, yPeak] = interpMax(zVals, yVals)
-%INTERPMAX Smooth interpolate and locate peak.
-% Uses shape-preserving cubic interpolation on a finer grid.
+%INTERPMAX Smooth interpolate (makima if available, else pchip) and locate peak.
 zVals = zVals(:);
 yVals = yVals(:);
 if numel(zVals) < 3 || numel(yVals) < 3
@@ -203,7 +202,11 @@ if numel(zVals) < 3 || numel(yVals) < 3
     return;
 end
 zf = linspace(min(zVals), max(zVals), 500);
-yf = pchip(zVals, yVals, zf);
+try
+    yf = interp1(zVals, yVals, zf, 'makima');
+catch
+    yf = pchip(zVals, yVals, zf);
+end
 [yPeak, idx] = max(yf);
 zPeak = zf(idx);
 end
