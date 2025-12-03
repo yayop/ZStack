@@ -211,12 +211,12 @@ resetAxes();
             showAlert('Bio-Formats (bfmatlab) not found. Please place bfmatlab with bfopen.m in the app folder.');
             stack = [];
             frameCount = 0;
-            meta = struct('deltaT',[],'zPos',[],'acqDate','');
+            meta = struct('deltaT',[],'zPos',[],'acqDate','', 'absTime',[]);
             return;
         end
         stack = [];
         frameCount = 0;
-        meta = struct('deltaT',[],'zPos',[],'acqDate','');
+        meta = struct('deltaT',[],'zPos',[],'acqDate','', 'absTime',[]);
         try
             data = bfopen(filePath);
         catch ME
@@ -289,7 +289,7 @@ resetAxes();
 
         nVids = numel(app.videos);
         roiData = repmat(struct('stackName','','stackPath','','roiPosition',[],'histBins',app.histBins,...
-            'frames',[],'deltaT',[],'zPos',[],'acqDate','', 'frameCount',0,'videoIndex',0), nVids,1);
+            'frames',[],'deltaT',[],'zPos',[],'acqDate','', 'absTime',[], 'frameCount',0,'videoIndex',0), nVids,1);
         for v = 1:nVids
             vid = app.videos(v);
             stack = vid.stack;
@@ -318,6 +318,7 @@ resetAxes();
             roiData(v).deltaT = meta.deltaT;
             roiData(v).zPos = meta.zPos;
             roiData(v).acqDate = meta.acqDate;
+            roiData(v).absTime = meta.absTime;
             roiData(v).frameCount = vid.frameCount;
             roiData(v).videoIndex = v;
         end
@@ -461,15 +462,17 @@ resetAxes();
     end
 
     function meta = readMetadata(filePath, frameCount)
-        meta = struct('deltaT',nan(frameCount,1),'zPos',nan(frameCount,1),'acqDate','');
+        meta = struct('deltaT',nan(frameCount,1),'zPos',nan(frameCount,1),'acqDate','', 'absTime',NaT(frameCount,1));
         try
             r = bfGetReader(filePath);
             r.setSeries(0);
             ms = r.getMetadataStore();
+            acqDT = [];
             try
                 dtStr = ms.getImageAcquisitionDate(0);
                 if ~isempty(dtStr)
                     meta.acqDate = char(dtStr.toString());
+                    acqDT = parseAcqDate(meta.acqDate);
                 end
             catch
             end
@@ -489,9 +492,32 @@ resetAxes();
                 catch
                 end
             end
+            if ~isempty(acqDT) && isdatetime(acqDT) && ~isnat(acqDT)
+                meta.absTime = acqDT + seconds(meta.deltaT);
+            end
             r.close();
         catch
             % keep defaults
+        end
+    end
+
+    function dt = parseAcqDate(dtStr)
+        dt = NaT;
+        if isempty(dtStr)
+            return;
+        end
+        try
+            dt = datetime(dtStr,'InputFormat','yyyy-MM-dd''T''HH:mm:ssXXX','TimeZone','local');
+        catch
+            try
+                dt = datetime(dtStr,'InputFormat','yyyy-MM-dd''T''HH:mm:ss.SSSXXX','TimeZone','local');
+            catch
+                try
+                    dt = datetime(dtStr,'TimeZone','local');
+                catch
+                    dt = NaT;
+                end
+            end
         end
     end
 
@@ -581,7 +607,7 @@ resetAxes();
 
     function meta = safeMeta(vid)
         n = vid.frameCount;
-        meta = struct('deltaT',nan(n,1),'zPos',nan(n,1),'acqDate','');
+        meta = struct('deltaT',nan(n,1),'zPos',nan(n,1),'acqDate','', 'absTime',NaT(n,1));
         if isfield(vid,'meta') && ~isempty(vid.meta)
             if isfield(vid.meta,'deltaT') && numel(vid.meta.deltaT)>=n
                 meta.deltaT = vid.meta.deltaT(:);
@@ -591,6 +617,9 @@ resetAxes();
             end
             if isfield(vid.meta,'acqDate')
                 meta.acqDate = vid.meta.acqDate;
+            end
+            if isfield(vid.meta,'absTime') && numel(vid.meta.absTime)>=n
+                meta.absTime = vid.meta.absTime(:);
             end
         end
     end
@@ -630,7 +659,7 @@ resetAxes();
                     stack = [];
                     frameCount = 0;
                     nm = '';
-                    metaLocal = struct('deltaT',[],'zPos',[],'acqDate','');
+                    metaLocal = struct('deltaT',[],'zPos',[],'acqDate','', 'absTime',[]);
                     ok = false;
                     baseDir = fileparts(mfilename('fullpath'));
                     bfDir = fullfile(baseDir,'bfmatlab');
@@ -658,15 +687,17 @@ resetAxes();
                             [~, b, e] = fileparts(fp);
                             nm = [b e];
                             % metadata
-                            metaLocal = struct('deltaT',nan(frameCount,1),'zPos',nan(frameCount,1),'acqDate','');
+                            metaLocal = struct('deltaT',nan(frameCount,1),'zPos',nan(frameCount,1),'acqDate','', 'absTime',NaT(frameCount,1));
                             try
                                 r = bfGetReader(fp);
                                 r.setSeries(0);
                                 ms = r.getMetadataStore();
+                                acqDT = [];
                                 try
                                     dtStr = ms.getImageAcquisitionDate(0);
                                     if ~isempty(dtStr)
                                         metaLocal.acqDate = char(dtStr.toString());
+                                        acqDT = parseAcqDate(metaLocal.acqDate);
                                     end
                                 catch
                                 end
@@ -685,6 +716,9 @@ resetAxes();
                                         end
                                     catch
                                     end
+                                end
+                                if ~isempty(acqDT) && isdatetime(acqDT) && ~isnat(acqDT)
+                                    metaLocal.absTime = acqDT + seconds(metaLocal.deltaT);
                                 end
                                 r.close();
                             catch
@@ -709,7 +743,7 @@ resetAxes();
                 stack = [];
                 frameCount = 0;
                 nm = '';
-                metaLocal = struct('deltaT',[],'zPos',[],'acqDate','');
+                metaLocal = struct('deltaT',[],'zPos',[],'acqDate','', 'absTime',[]);
                 ok = false;
                 try
                     data = bfopen(fp);
