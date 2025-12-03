@@ -33,20 +33,27 @@ if ~isempty(relTimes)
     end
 end
 
+minZall = inf; maxZall = -inf;
 for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
     zVals = zVals - refZ;
+    minZall = min(minZall, min(zVals));
+    maxZall = max(maxZall, max(zVals));
     plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
     scatter(zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
 end
+xline(0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
 xlabel('$z~(\\mu m)$','Interpreter','latex','FontSize',16);
 ylabel('$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
 set(gca,'FontSize',12);
 axis square;
 pbaspect([1 1 1]);
+if isfinite(minZall) && isfinite(maxZall)
+    xlim([minZall maxZall]);
+end
 box on;
 colormap(colors);
 cb = colorbar;
@@ -57,10 +64,8 @@ if strcmp(cbLabel,'Video index')
     cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
 else
     cb.Label.String = 'time, t (min)';
-    relMin = min(relTimes);
-    relMax = max(relTimes);
-    cb.Ticks = linspace(relMin, relMax, min(6,nVids));
-    cb.TickLabels = arrayfun(@(t) sprintf('%.2f', t), cb.Ticks, 'UniformOutput', false);
+    cb.Ticks = [];
+    cb.TickLabels = [];
 end
 
 hold off;
