@@ -17,7 +17,14 @@ if ~isstruct(roiData) || isempty(roiData)
     error('roiData is empty or not a struct.');
 end
 %%
+nFrames = arrayfun(@(r) numel(r.frames), roiData);
+medianCount = median(nFrames);
+keepIdx = (nFrames == medianCount);
+roiData = roiData(keepIdx);
 nVids = numel(roiData);
+if nVids == 0
+    error('No videos matched the median frame count filter.');
+end
 [colors, cbLabel, relTimes, relSpan, baseCmap] = computeColors(roiData);
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
