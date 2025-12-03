@@ -114,7 +114,16 @@ if numel(timeVals) >= 2
     pfit = polyfit(timeVals, zMaxList(validTZ), 1);
     tLine = linspace(min(timeVals), max(timeVals), 100);
     zLine = polyval(pfit, tLine);
-    plot(ax2, tLine, zLine, '--', 'Color',[0 0 0], 'LineWidth', 1.2);
+    plot(ax2, tLine, zLine, 'Color',[0.8 0 0], 'LineWidth', 2);
+    % annotate slope (velocity)
+    tspan = range(timeVals);
+    zspan = range(zMaxList(validTZ));
+    if tspan == 0, tspan = 1; end
+    if zspan == 0, zspan = 1; end
+    tText = min(timeVals) + 0.05*tspan;
+    zText = max(zMaxList(validTZ)) + 0.05*zspan;
+    text(ax2, tText, zText, sprintf('v = %.3f (\\mu m/min)', pfit(1)), ...
+        'FontSize',12,'Color',[0.8 0 0],'Interpreter','latex');
 end
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
