@@ -49,7 +49,7 @@ rightPanel = uipanel(mainGrid,'Title','Controls','FontWeight','bold');
 rightPanel.Layout.Row = 1;
 rightPanel.Layout.Column = 2;
 rightGrid = uigridlayout(rightPanel,[7 1]);
-rightGrid.RowHeight = {30,30,30,30,190,'1x',220};
+rightGrid.RowHeight = {30,30,30,30,230,'1x',220};
 rightGrid.Padding = [10 10 10 10];
 rightGrid.RowSpacing = 8;
 
@@ -68,8 +68,8 @@ app.infoLabel.Layout.Row = 4;
 % ROI panel
 roiPanel = uipanel(rightGrid,'Title','Define ROI','FontWeight','bold');
 roiPanel.Layout.Row = 5;
-roiGrid = uigridlayout(roiPanel,[7 2]);
-roiGrid.RowHeight = {28,24,24,24,24,28,24};
+roiGrid = uigridlayout(roiPanel,[8 2]);
+roiGrid.RowHeight = {28,24,24,24,24,28,24,28};
 roiGrid.ColumnWidth = {70,'1x'};
 roiGrid.Padding = [6 6 6 6];
 roiGrid.RowSpacing = 4;
@@ -106,6 +106,10 @@ lblBins.Layout.Row = 7; lblBins.Layout.Column = 1;
 app.binField = uieditfield(roiGrid,'numeric','Value',app.histBins,'Limits',[1 Inf],...
     'RoundFractionalValues','on','ValueChangedFcn',@(src,evt)onBinsChanged());
 app.binField.Layout.Row = 7; app.binField.Layout.Column = 2;
+
+app.fullRoiBtn = uibutton(roiGrid,'Text','Full frame ROI','ButtonPushedFcn',@(src,evt)onSetFullFrameRoi());
+app.fullRoiBtn.Layout.Row = 8;
+app.fullRoiBtn.Layout.Column = [1 2];
 
 selectorPanel = uipanel(rightGrid,'Title','Selector','FontWeight','bold');
 selectorPanel.Layout.Row = 7;
@@ -390,6 +394,14 @@ resetAxes();
         drawHistogram(app.videos(app.currVideoIdx).stack(:,:,app.currFrame));
     end
 
+    function onSetFullFrameRoi()
+        if isempty(app.videos)
+            showAlert('Load a video before defining ROI.');
+            return;
+        end
+        setFullFrameRoi();
+    end
+
     function syncRoiFieldsFromHandle()
         if isempty(app.roiHandle) || ~isvalid(app.roiHandle)
             return;
@@ -449,6 +461,42 @@ resetAxes();
         end
     end
 
+    function ensureFullRoiExists(img)
+        if isempty(app.roiHandle) || ~isvalid(app.roiHandle)
+            setFullFrameRoi(img,false);
+        end
+    end
+
+    function setFullFrameRoi(img, doDraw)
+        if nargin < 1 || isempty(img)
+            if isempty(app.videos)
+                return;
+            end
+            img = app.videos(app.currVideoIdx).stack(:,:,app.currFrame);
+        end
+        if nargin < 2
+            doDraw = true;
+        end
+        sz = size(img);
+        if numel(sz) < 2
+            return;
+        end
+        w = sz(2); h = sz(1);
+        pos = [1 1 w h];
+        clearRoiHandle();
+        try
+            hroi = drawrectangle(app.axCurrent,'Color',[0 0.8 1],'FaceAlpha',0.1,'Position',pos);
+        catch
+            return;
+        end
+        app.roiHandle = hroi;
+        attachRoiListeners();
+        syncRoiFieldsFromHandle();
+        if doDraw
+            drawHistogram(img);
+        end
+    end
+
     function redrawFrame()
         if isempty(app.videos)
             resetAxes();
@@ -462,6 +510,7 @@ resetAxes();
         app.axCurrent.XTick = [];
         app.axCurrent.YTick = [];
         title(app.axCurrent, sprintf('Frame %d/%d', app.currFrame, vid.frameCount));
+        ensureFullRoiExists(img);
         drawHistogram(img);
         app.frameLabel.Text = sprintf('Frame %d/%d', app.currFrame, vid.frameCount);
         app.infoLabel.Text = sprintf('Video: %s', vid.name);
@@ -547,10 +596,8 @@ resetAxes();
         app.histBins = nb;
         app.binField.Value = nb;
         if isempty(app.roiHandle) || ~isvalid(app.roiHandle)
-            text(app.axSecondary,0.5,0.5,'Define ROI to view histogram','HorizontalAlignment','center','Units','normalized','Color',[0.4 0.4 0.4]);
-            axis(app.axSecondary,'square');
-            axis(app.axSecondary,'off');
-            return;
+            % Fallback: use full frame
+            setFullFrameRoi(img,false);
         end
         try
             mask = createMask(app.roiHandle);
@@ -558,10 +605,19 @@ resetAxes();
             mask = [];
         end
         if isempty(mask) || ~any(mask(:))
-            text(app.axSecondary,0.5,0.5,'ROI is empty','HorizontalAlignment','center','Units','normalized','Color',[0.4 0.4 0.4]);
-            axis(app.axSecondary,'square');
-            axis(app.axSecondary,'off');
-            return;
+            % If mask empty, retry with full-frame ROI once
+            setFullFrameRoi(img,false);
+            try
+                mask = createMask(app.roiHandle);
+            catch
+                mask = [];
+            end
+            if isempty(mask) || ~any(mask(:))
+                text(app.axSecondary,0.5,0.5,'ROI is empty','HorizontalAlignment','center','Units','normalized','Color',[0.4 0.4 0.4]);
+                axis(app.axSecondary,'square');
+                axis(app.axSecondary,'off');
+                return;
+            end
         end
         vals = double(img(mask));
         if isempty(vals)
