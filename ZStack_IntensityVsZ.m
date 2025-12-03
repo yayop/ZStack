@@ -39,21 +39,18 @@ fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile; hold(ax1,'on');
 
-% Reference z0 from latest curve (interpolated max)
+% Reference z0 from latest curve (centroid)
 refZ = 0;
 if ~isempty(relTimes)
     [~, refVid] = max(relTimes);
     [refMean, refZvals] = computeMeanZ(roiData(refVid));
-    if numel(refMean) > 2 && numel(refZvals) > 2
-        [refZ, ~] = interpMax(refZvals, refMean);
-    elseif ~isempty(refMean) && ~isempty(refZvals)
-        [~, idxMax] = max(refMean);
-        refZ = refZvals(idxMax);
+    if ~isempty(refMean) && ~isempty(refZvals)
+        refZ = centroidZ(refZvals, refMean);
     end
 end
 
 minZall = inf; maxZall = -inf;
-zMaxList = nan(nVids,1);
+zMaxList = nan(nVids,1); % now stores centroid z
 tList = duration(zeros(nVids,1),0,0); % store as duration
 for v = 1:nVids
     vid = roiData(v);
@@ -81,8 +78,9 @@ for v = 1:nVids
     vidIdxPlot = find(idxPlot==v,1,'first');
     plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.8);
     scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
-    % Mark max point (interpolated)
-    zMark = zMaxList(v);
+    % Mark centroid point
+    zMark = centroidZ(zVals, meanVals);
+    zMaxList(v) = zMark;
     yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
         'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
@@ -120,7 +118,7 @@ timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
     'MarkerFaceColor', 'y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
-ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
+ylabel(ax2,'$z_{\\mathrm{cm}}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
 axis(ax2,'square');
 pbaspect(ax2,[1 1 1]);
@@ -263,4 +261,14 @@ catch
 end
 [yPeak, idx] = max(yf);
 zPeak = zf(idx);
+end
+
+function zc = centroidZ(zVals, yVals)
+fin = ~isnan(zVals) & ~isnan(yVals);
+zVals = zVals(fin); yVals = yVals(fin);
+if isempty(zVals) || all(yVals<=0)
+    zc = NaN;
+    return;
+end
+zc = sum(zVals(:).*yVals(:)) ./ sum(yVals(:));
 end
