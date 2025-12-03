@@ -113,7 +113,7 @@ if numel(timeVals) >= 2
     pfit = polyfit(timeVals, zMaxList(validTZ), 1);
     tLine = linspace(min(timeVals), max(timeVals), 100);
     zLine = polyval(pfit, tLine);
-    fitColor = [1 0.4 0];
+    fitColor = [0.722, 0.373, 0];
     plot(ax2, tLine, zLine, 'Color',fitColor, 'LineWidth', 2);
     % annotate slope (velocity)
     tspan = range(timeVals);
