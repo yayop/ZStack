@@ -22,12 +22,14 @@ nVids = numel(roiData);
 figure('Name','Mean ROI intensity vs Z','Color','w');
 hold on;
 
-% Reference z0 from latest curve
+% Reference z0 from latest curve (interpolated max)
 refZ = 0;
 if ~isempty(relTimes)
     [~, refVid] = max(relTimes);
     [refMean, refZvals] = computeMeanZ(roiData(refVid));
-    if ~isempty(refMean) && ~isempty(refZvals)
+    if numel(refMean) > 2 && numel(refZvals) > 2
+        [refZ, ~] = interpMax(refZvals, refMean);
+    elseif ~isempty(refMean) && ~isempty(refZvals)
         [~, idxMax] = max(refMean);
         refZ = refZvals(idxMax);
     end
@@ -43,10 +45,16 @@ for v = 1:nVids
     maxZall = max(maxZall, max(zVals));
     plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
     scatter(zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
-    % Mark max point
-    [~, imax] = max(meanVals);
-    scatter(zVals(imax), meanVals(imax), 36, 'p', 'MarkerEdgeColor', [0 0 0], ...
-        'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+    % Mark max point (interpolated)
+    if numel(meanVals) > 2 && numel(zVals) > 2
+        [zMaxInterp, yMaxInterp] = interpMax(zVals, meanVals);
+        scatter(zMaxInterp, yMaxInterp, 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
+            'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+    else
+        [~, imax] = max(meanVals);
+        scatter(zVals(imax), meanVals(imax), 42, 'p', 'MarkerEdgeColor', [0 0 0], ...
+            'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+    end
 end
 xline(0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -181,4 +189,21 @@ if size(cmap,1) ~= n
     xi = linspace(0,1,size(cmap,1));
     cmap = interp1(xi, cmap, xo, 'linear');
 end
+end
+
+function [zPeak, yPeak] = interpMax(zVals, yVals)
+%INTERPMAX Smooth interpolate and locate peak.
+% Uses shape-preserving cubic interpolation on a finer grid.
+zVals = zVals(:);
+yVals = yVals(:);
+if numel(zVals) < 3 || numel(yVals) < 3
+    [~, idx] = max(yVals);
+    zPeak = zVals(idx);
+    yPeak = yVals(idx);
+    return;
+end
+zf = linspace(min(zVals), max(zVals), 500);
+yf = pchip(zVals, yVals, zf);
+[yPeak, idx] = max(yf);
+zPeak = zf(idx);
 end
