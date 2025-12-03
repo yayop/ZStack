@@ -54,11 +54,6 @@ for v = 1:nVids
     % Ensure monotonic z for integration/peak finding
     [zVals, order] = sort(zVals);
     meanVals = meanVals(order);
-    % Normalize by area under the curve
-    areaVal = trapz(zVals, meanVals);
-    if areaVal > 0 && isfinite(areaVal)
-        meanVals = meanVals ./ areaVal;
-    end
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
     plot(ax1, zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
