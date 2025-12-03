@@ -586,7 +586,21 @@ resetAxes();
                 end
             catch
             end
-            if (isempty(meta.absTime) || all(isnat(meta.absTime))) && ~isempty(acqDT) && ~isnat(acqDT)
+            % Global metadata base time (julian date)
+            baseAbs = NaT;
+            try
+                gmd = r.getGlobalMetadata();
+                if gmd.containsKey('dTimeAbsolute')
+                    baseAbs = datetime(double(gmd.get('dTimeAbsolute')),'convertfrom','juliandate','TimeZone','UTC');
+                end
+            catch
+            end
+            if ~isnat(baseAbs)
+                meta.absTime = baseAbs + seconds(meta.deltaT);
+                if exist('ts','var') && ~all(isnan(ts))
+                    meta.absTime = baseAbs + seconds(ts);
+                end
+            elseif ~isempty(acqDT) && isdatetime(acqDT) && ~isnat(acqDT)
                 meta.absTime = acqDT + seconds(meta.deltaT);
             end
             r.close();
@@ -774,11 +788,20 @@ resetAxes();
                                 r.setSeries(0);
                                 ms = r.getMetadataStore();
                                 acqDT = [];
+                                baseAbs = NaT;
                                 try
                                     dtStr = ms.getImageAcquisitionDate(0);
                                     if ~isempty(dtStr)
                                         metaLocal.acqDate = char(dtStr.toString());
                                         acqDT = parseAcqDate(metaLocal.acqDate);
+                                    end
+                                catch
+                                end
+                                % global metadata base time
+                                try
+                                    gmd = r.getGlobalMetadata();
+                                    if gmd.containsKey('dTimeAbsolute')
+                                        baseAbs = datetime(double(gmd.get('dTimeAbsolute')),'convertfrom','juliandate','TimeZone','UTC');
                                     end
                                 catch
                                 end
@@ -829,7 +852,9 @@ resetAxes();
                                     if ~all(isnan(ts))
                                         nanIdx = isnan(metaLocal.deltaT) & ~isnan(ts);
                                         metaLocal.deltaT(nanIdx) = ts(nanIdx);
-                                        if isempty(acqDT) || isnat(acqDT)
+                                        if ~isnat(baseAbs)
+                                            metaLocal.absTime = baseAbs + seconds(ts);
+                                        elseif isempty(acqDT) || isnat(acqDT)
                                             metaLocal.absTime = seconds(ts);
                                         else
                                             metaLocal.absTime = acqDT + seconds(ts);
@@ -837,7 +862,9 @@ resetAxes();
                                     end
                                 catch
                                 end
-                                if (isempty(metaLocal.absTime) || all(isnat(metaLocal.absTime))) && ~isempty(acqDT) && ~isnat(acqDT)
+                                if (isempty(metaLocal.absTime) || all(isnat(metaLocal.absTime))) && ~isnat(baseAbs)
+                                    metaLocal.absTime = baseAbs + seconds(metaLocal.deltaT);
+                                elseif (isempty(metaLocal.absTime) || all(isnat(metaLocal.absTime))) && ~isempty(acqDT) && ~isnat(acqDT)
                                     metaLocal.absTime = acqDT + seconds(metaLocal.deltaT);
                                 end
                                 r.close();
