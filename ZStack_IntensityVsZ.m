@@ -89,18 +89,19 @@ if isfinite(minZall) && isfinite(maxZall)
     xlim(ax1,[minZall maxZall]);
 end
 box(ax1,'on');
-colormap(ax1,baseCmap);
+colormap(ax1, baseCmap);
+caxis(ax1,[0 relSpan]);
 cb = colorbar(ax1);
 cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'latex';
-cb.EdgeColor = 'none';
-cb.Limits = [0 relSpan];
-caxis(ax1,[0 relSpan]);
-if relSpan >= 82
-    tickVals = [0 41 82];
-else
-    tickVals = linspace(0, relSpan, 3);
+cb.Color = [0 0 0];
+cb.EdgeColor = 'k';
+% Build ticks explicitly and clamp to the color range
+tickVals = unique([0 linspace(0, relSpan, 5) 41 82]);
+tickVals = tickVals(tickVals <= relSpan);
+if numel(tickVals) < 2
+    tickVals = [0 relSpan];
 end
 cb.Ticks = tickVals;
 cb.TickLabels = arrayfun(@(t)sprintf('%.1f', t), tickVals, 'UniformOutput', false);
