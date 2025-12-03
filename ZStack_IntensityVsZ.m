@@ -18,7 +18,7 @@ if ~isstruct(roiData) || isempty(roiData)
 end
 %%
 nVids = numel(roiData);
-[colors, cbLabel, relTimes, relSpan] = computeColors(roiData);
+[colors, cbLabel, relTimes, relSpan, baseCmap] = computeColors(roiData);
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile; hold(ax1,'on');
@@ -52,8 +52,6 @@ for v = 1:nVids
     if areaVal > 0 && isfinite(areaVal)
         meanVals = meanVals ./ areaVal;
     end
-    % Avoid non-positive values for log scale
-    meanVals(meanVals <= 0) = NaN;
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
     plot(ax1, zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
@@ -81,12 +79,11 @@ ylabel(ax1,'$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
-set(ax1,'YScale','log');
 if isfinite(minZall) && isfinite(maxZall)
     xlim(ax1,[minZall maxZall]);
 end
 box(ax1,'on');
-colormap(ax1,colors);
+colormap(ax1,baseCmap);
 cb = colorbar(ax1);
 cb.Label.String = cbLabel;
 cb.TickLabelInterpreter = 'none';
@@ -102,9 +99,8 @@ end
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
-validTZ = ~isnan(zMaxList) & ~isnan(tList);
+validTZ = ~isnan(zMaxList) & ~isnat(tList);
 scatter(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 36, colors(validTZ,:), 'filled');
-plot(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 'Color',[0.2 0.2 0.2], 'LineStyle','-', 'LineWidth',0.8);
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
@@ -126,11 +122,12 @@ else
 end
 end
 
-function [colors, label, relTimes, relSpan] = computeColors(roiData)
+function [colors, label, relTimes, relSpan, baseCmap] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    colors = winter(n);
+    baseCmap = winter(256);
+    colors = baseCmap(round(linspace(1,size(baseCmap,1), n)),:);
     label = 'Video index';
     relTimes = [];
     relSpan = 0;
@@ -148,9 +145,9 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-colors = winter(256);
-idx = 1 + round(tnorm*(size(colors,1)-1));
-colors = colors(idx,:);
+baseCmap = winter(256);
+idx = 1 + round(tnorm*(size(baseCmap,1)-1));
+colors = baseCmap(idx,:);
 end
 
 function times = extractAbsStart(roiData)
