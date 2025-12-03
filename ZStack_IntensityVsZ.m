@@ -1,7 +1,7 @@
 % Script: plots mean ROI intensity vs Z for each video in all_videos_roi.mat
 % Configure the source file here:
-%matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
-matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
+matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
+%matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
     if isequal(f,0), error('File not found.'); end
@@ -71,12 +71,12 @@ for v = 1:nVids
     % Plot only subset
     if ~ismember(v, idxPlot), continue; end
     vidIdxPlot = find(idxPlot==v,1,'first');
-    plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.8);
+    plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.5);
     scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
     % Mark peak point
     yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
-        'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+        'MarkerFaceColor', 'y', 'LineWidth', 0.5, 'MarkerFaceAlpha', 1);
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -99,7 +99,7 @@ cb.EdgeColor = 'k';
 % Title on top instead of side label
 cb.Title.String = '$t$ (min)';
 cb.Title.Interpreter = 'latex';
-cb.Title.FontSize = 17;
+cb.Title.FontSize = 13;
 cb.Title.Color = [0 0 0];
 % Three integer ticks across the span
 tickVals = linspace(0, relSpan, 3);
@@ -111,14 +111,14 @@ ax2 = nexttile; hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
-    'MarkerFaceColor','y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, ...
+    'MarkerFaceColor','y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.5, ...
     'MarkerFaceAlpha', 1);
 if numel(timeVals) >= 2
     pfit = polyfit(timeVals, zMaxList(validTZ), 1);
     tLine = linspace(min(timeVals), max(timeVals), 100);
     zLine = polyval(pfit, tLine);
     fitColor = [0.722, 0.373, 0];
-    plot(ax2, tLine, zLine, 'Color',fitColor, 'LineWidth', 2);
+    plot(ax2, tLine, zLine, 'Color',fitColor, 'LineWidth', 4);
     % annotate slope (velocity)
     tspan = range(timeVals);
     zspan = range(zMaxList(validTZ));
@@ -126,7 +126,7 @@ if numel(timeVals) >= 2
     if zspan == 0, zspan = 1; end
     tText = min(timeVals) + 0.05*tspan;
     zText = max(zMaxList(validTZ)) + 0.05*zspan;
-    title(ax2, sprintf('$|v| =$ %.1f ($\\mu$m/min)', abs(pfit(1))), ...
+    title(ax2, sprintf('$|v| =$ %.2f ($\\mu$m/min)', abs(pfit(1))), ...
         'Interpreter','latex','Color',fitColor,'FontSize',17);
 end
 xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',17);
