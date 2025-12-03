@@ -547,7 +547,46 @@ resetAxes();
                 catch
                 end
             end
-            if ~isempty(acqDT) && isdatetime(acqDT) && ~isnat(acqDT)
+            % Try to read timestamp keys from series metadata (often seconds since start)
+            try
+                md = r.getSeriesMetadata();
+                keys = md.keySet.toArray;
+                ts = nan(frameCount,1);
+                for ii = 1:numel(keys)
+                    k = char(keys(ii));
+                    if contains(lower(k),'timestamp')
+                        val = md.get(keys(ii));
+                        vnum = NaN;
+                        if isjava(val) && isa(val,'java.lang.Number')
+                            vnum = double(val.doubleValue());
+                        elseif isnumeric(val)
+                            vnum = double(val);
+                        elseif ischar(val) && numel(val)==1
+                            vnum = double(val);
+                        end
+                        if ~isnan(vnum)
+                            idxNum = regexp(k,'\d+','match');
+                            if ~isempty(idxNum)
+                                j = str2double(idxNum{end});
+                                if j >= 1 && j <= frameCount
+                                    ts(j) = vnum;
+                                end
+                            end
+                        end
+                    end
+                end
+                if ~all(isnan(ts))
+                    nanIdx = isnan(meta.deltaT) & ~isnan(ts);
+                    meta.deltaT(nanIdx) = ts(nanIdx);
+                    if isempty(acqDT) || isnat(acqDT)
+                        meta.absTime = seconds(ts);
+                    else
+                        meta.absTime = acqDT + seconds(ts);
+                    end
+                end
+            catch
+            end
+            if (isempty(meta.absTime) || all(isnat(meta.absTime))) && ~isempty(acqDT) && ~isnat(acqDT)
                 meta.absTime = acqDT + seconds(meta.deltaT);
             end
             r.close();
@@ -759,7 +798,46 @@ resetAxes();
                                     catch
                                     end
                                 end
-                                if ~isempty(acqDT) && isdatetime(acqDT) && ~isnat(acqDT)
+                                % timestamps in series metadata
+                                try
+                                    md = r.getSeriesMetadata();
+                                    keys = md.keySet.toArray;
+                                    ts = nan(frameCount,1);
+                                    for ii = 1:numel(keys)
+                                        k = char(keys(ii));
+                                        if contains(lower(k),'timestamp')
+                                            val = md.get(keys(ii));
+                                            vnum = NaN;
+                                            if isjava(val) && isa(val,'java.lang.Number')
+                                                vnum = double(val.doubleValue());
+                                            elseif isnumeric(val)
+                                                vnum = double(val);
+                                            elseif ischar(val) && numel(val)==1
+                                                vnum = double(val);
+                                            end
+                                            if ~isnan(vnum)
+                                                idxNum = regexp(k,'\d+','match');
+                                                if ~isempty(idxNum)
+                                                    j = str2double(idxNum{end});
+                                                    if j >= 1 && j <= frameCount
+                                                        ts(j) = vnum;
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                    if ~all(isnan(ts))
+                                        nanIdx = isnan(metaLocal.deltaT) & ~isnan(ts);
+                                        metaLocal.deltaT(nanIdx) = ts(nanIdx);
+                                        if isempty(acqDT) || isnat(acqDT)
+                                            metaLocal.absTime = seconds(ts);
+                                        else
+                                            metaLocal.absTime = acqDT + seconds(ts);
+                                        end
+                                    end
+                                catch
+                                end
+                                if (isempty(metaLocal.absTime) || all(isnat(metaLocal.absTime))) && ~isempty(acqDT) && ~isnat(acqDT)
                                     metaLocal.absTime = acqDT + seconds(metaLocal.deltaT);
                                 end
                                 r.close();
