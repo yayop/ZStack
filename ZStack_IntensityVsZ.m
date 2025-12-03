@@ -2,7 +2,8 @@ function ZStack_IntensityVsZ(matFile)
 %ZSTACK_INTENSITYVSZ Plot mean ROI intensity vs Z for each video.
 %   ZStack_IntensityVsZ() loads all_videos_roi.mat (exported by ZStackGUI)
 %   from the current folder, or prompts for a file if not found. Each video
-%   curve is color-coded; a colorbar maps color to video index/name.
+%   curve is color-coded by acquisition start time (absTime) if available,
+%   otherwise by video index/name.
 %
 %   ZStack_IntensityVsZ(matFile) loads the specified MAT file.
 
@@ -36,7 +37,8 @@ if nVids == 0
     return;
 end
 
-colors = parula(nVids);
+% Compute color map based on absolute start times if available
+[colors, cbLabel] = computeColors(roiData);
 figure('Name','Mean ROI intensity vs Z','Color','w');
 hold on;
 plotted = false(1,nVids);
@@ -88,10 +90,25 @@ title('Mean ROI intensity vs Z');
 box on;
 colormap(colors);
 cb = colorbar;
-cb.Label.String = 'Video index';
-cb.Ticks = 1:nVids;
-cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
+cb.Label.String = cbLabel;
 cb.TickLabelInterpreter = 'none';
+if numel(cb.Ticks) ~= size(colors,1)
+    % adjust ticks for continuous scale
+    cb.Ticks = linspace(cb.Limits(1), cb.Limits(2), min(6, size(colors,1)));
+end
+if strcmp(cbLabel,'Video index')
+    cb.Ticks = 1:nVids;
+    cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
+else
+    % show min/max times
+    try
+        times = extractAbsStart(roiData);
+        if ~isempty(times) && any(~isnat(times))
+            cb.TickLabels = cellstr(datestr(linspace(min(times(~isnat(times))), max(times(~isnat(times))), numel(cb.Ticks))));
+        end
+    catch
+    end
+end
 
 hold off;
 
@@ -105,5 +122,46 @@ elseif isfield(vid,'stackPath') && ~isempty(vid.stackPath)
     name = [nm ext];
 else
     name = sprintf('Video %d', vid.videoIndex);
+end
+end
+
+function [colors, label] = computeColors(roiData)
+n = numel(roiData);
+times = extractAbsStart(roiData);
+if isempty(times) || all(isnat(times))
+    colors = parula(n);
+    label = 'Video index';
+    return;
+end
+label = 'Abs start time';
+% map times to [0,1] and use parula as placeholder (abyss-like)
+valid = ~isnat(times);
+mins = min(times(valid));
+maxs = max(times(valid));
+if mins == maxs
+    tnorm = zeros(n,1);
+else
+    tnorm = (seconds(times - mins)) ./ seconds(maxs - mins);
+end
+cmap = flipud(parula(256)); % placeholder for "abyss" style
+idx = 1 + round(tnorm*(size(cmap,1)-1));
+colors = cmap(idx,:);
+end
+
+function times = extractAbsStart(roiData)
+n = numel(roiData);
+times = NaT(n,1);
+for i = 1:n
+    vid = roiData(i);
+    if isfield(vid,'absTime') && ~isempty(vid.absTime)
+        t = vid.absTime;
+        if iscell(t), try t = t{1}; end; end
+        if isdatetime(t)
+            times(i) = t(1);
+        elseif isnumeric(t) && ~isempty(t)
+            % maybe seconds; treat as offset from 0
+            times(i) = datetime(t(1), 'ConvertFrom','posixtime');
+        end
+    end
 end
 end
