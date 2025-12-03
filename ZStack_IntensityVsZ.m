@@ -52,6 +52,8 @@ for v = 1:nVids
     if areaVal > 0 && isfinite(areaVal)
         meanVals = meanVals ./ areaVal;
     end
+    % Avoid non-positive values for log scale
+    meanVals(meanVals <= 0) = NaN;
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
     plot(ax1, zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
@@ -79,6 +81,7 @@ ylabel(ax1,'$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
+set(ax1,'YScale','log');
 if isfinite(minZall) && isfinite(maxZall)
     xlim(ax1,[minZall maxZall]);
 end
