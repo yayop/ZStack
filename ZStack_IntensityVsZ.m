@@ -18,7 +18,7 @@ if ~isstruct(roiData) || isempty(roiData)
 end
 %%
 nVids = numel(roiData);
-[colors, cbLabel, relTimes] = computeColors(roiData);
+[colors, cbLabel, relTimes, relSpan] = computeColors(roiData);
 figure('Name','Mean ROI intensity vs Z','Color','w');
 hold on;
 
@@ -43,6 +43,10 @@ for v = 1:nVids
     maxZall = max(maxZall, max(zVals));
     plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 0.8);
     scatter(zVals, meanVals, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
+    % Mark max point
+    [~, imax] = max(meanVals);
+    scatter(zVals(imax), meanVals(imax), 36, 'p', 'MarkerEdgeColor', [0 0 0], ...
+        'MarkerFaceColor', colors(v,:), 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
 end
 xline(0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -64,8 +68,8 @@ if strcmp(cbLabel,'Video index')
     cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
 else
     cb.Label.String = 'time, t (min)';
-    cb.Ticks = [];
-    cb.TickLabels = [];
+    cb.Ticks = linspace(0, relSpan, min(6,nVids));
+    cb.TickLabels = arrayfun(@(t) sprintf('%.1f', t), cb.Ticks, 'UniformOutput', false);
 end
 
 hold off;
@@ -82,13 +86,14 @@ else
 end
 end
 
-function [colors, label, relTimes] = computeColors(roiData)
+function [colors, label, relTimes, relSpan] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    colors = abyssPalette(n);
+    colors = jet(n);
     label = 'Video index';
     relTimes = [];
+    relSpan = 0;
     return;
 end
 label = 'Abs start - min (UTC)';
@@ -97,12 +102,13 @@ t0 = min(times(valid));
 relTimes = times - t0;
 mins = min(relTimes(valid));
 maxs = max(relTimes(valid));
+relSpan = minutes(maxs - mins);
 if mins == maxs
     tnorm = zeros(n,1);
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-colors = abyssPalette(256);
+colors = jet(256);
 idx = 1 + round(tnorm*(size(colors,1)-1));
 colors = colors(idx,:);
 end
