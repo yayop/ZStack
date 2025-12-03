@@ -223,7 +223,7 @@ end
 end
 
 function [zPeak, yPeak] = interpMax(zVals, yVals)
-%INTERPMAX Smooth interpolate (makima if available, else pchip) and locate peak.
+%INTERPMAX Smooth interpolate (spline if available, then makima, else pchip) and locate peak.
 zVals = zVals(:);
 yVals = yVals(:);
 if numel(zVals) < 3 || numel(yVals) < 3
@@ -234,9 +234,13 @@ if numel(zVals) < 3 || numel(yVals) < 3
 end
 zf = linspace(min(zVals), max(zVals), 500);
 try
-    yf = interp1(zVals, yVals, zf, 'makima');
+    yf = spline(zVals, yVals, zf);
 catch
-    yf = pchip(zVals, yVals, zf);
+    try
+        yf = interp1(zVals, yVals, zf, 'makima');
+    catch
+        yf = pchip(zVals, yVals, zf);
+    end
 end
 [yPeak, idx] = max(yf);
 zPeak = zf(idx);
