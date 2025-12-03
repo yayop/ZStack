@@ -134,7 +134,7 @@ if isempty(times) || all(isnat(times))
     return;
 end
 label = 'Abs start time';
-% map times to [0,1] and use parula as placeholder (abyss-like)
+% map times to [0,1] and use abyss if available
 valid = ~isnat(times);
 mins = min(times(valid));
 maxs = max(times(valid));
@@ -143,7 +143,7 @@ if mins == maxs
 else
     tnorm = (seconds(times - mins)) ./ seconds(maxs - mins);
 end
-cmap = abyssPalette(256);
+cmap = getAbyssColormap(256);
 idx = 1 + round(tnorm*(size(cmap,1)-1));
 colors = cmap(idx,:);
 end
@@ -176,22 +176,33 @@ for i = 1:n
     end
 end
 
-function cmap = abyssPalette(n)
-%ABYSSPALETTE Simple dark-to-light palette inspired by abyss.
+function cmap = getAbyssColormap(n)
+%GETABYSSCOLORMAP Try to use abyss if installed; fall back to parula.
 if nargin < 1, n = 256; end
-base = [
-    5   15   25
-    20  55  105
-    40  95  160
-    80 140  200
-   140 185  230
-   200 220  245];
-base = base ./ 255;
-xi = linspace(0,1,size(base,1));
-xo = linspace(0,1,n);
-cmap = zeros(n,3);
-for c = 1:3
-    cmap(:,c) = interp1(xi, base(:,c), xo, 'pchip');
+cmap = [];
+if exist('abyss','file') == 2
+    try
+        cmap = feval('abyss', n);
+    catch
+        try
+            cmap = colormap('abyss');
+        catch
+        end
+    end
+else
+    try
+        cmap = colormap('abyss');
+    catch
+    end
+end
+if isempty(cmap)
+    cmap = parula(n);
+end
+% ensure correct length
+if size(cmap,1) ~= n
+    xo = linspace(0,1,n);
+    xi = linspace(0,1,size(cmap,1));
+    cmap = interp1(xi, cmap, xo, 'linear');
 end
 end
 end
