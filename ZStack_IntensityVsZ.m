@@ -1,6 +1,6 @@
 % Script: plots mean ROI intensity vs Z for each video in all_videos_roi.mat
 % Configure the source file here:
-matFile = fullfile(pwd,'all_videos_roi.mat'); % edit if needed
+matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
 
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
@@ -16,43 +16,36 @@ roiData = S.roiData;
 if ~isstruct(roiData) || isempty(roiData)
     error('roiData is empty or not a struct.');
 end
-
+%%
 nVids = numel(roiData);
 [colors, cbLabel, relTimes] = computeColors(roiData);
 figure('Name','Mean ROI intensity vs Z','Color','w');
 hold on;
 
+% Reference z0 from latest curve
+refZ = 0;
+if ~isempty(relTimes)
+    [~, refVid] = max(relTimes);
+    [refMean, refZvals] = computeMeanZ(roiData(refVid));
+    if ~isempty(refMean) && ~isempty(refZvals)
+        [~, idxMax] = max(refMean);
+        refZ = refZvals(idxMax);
+    end
+end
+
 for v = 1:nVids
     vid = roiData(v);
-    if ~isfield(vid,'frames') || isempty(vid.frames), continue; end
-    frames = vid.frames;
-    nF = numel(frames);
-    if nF == 0, continue; end
-    meanVals = nan(nF,1);
-    for k = 1:nF
-        img = frames{k};
-        if isempty(img)
-            meanVals(k) = NaN;
-        else
-            meanVals(k) = mean(double(img(:)),'omitnan');
-        end
-    end
-    zVals = [];
-    if isfield(vid,'zPos'), zVals = vid.zPos; end
-    if isempty(zVals) || numel(zVals) ~= nF || all(isnan(zVals))
-        zVals = 1:nF;
-    else
-        zVals = zVals(:).';
-        if numel(zVals) ~= nF
-            zVals = zVals(1:min(end,nF));
-            meanVals = meanVals(1:numel(zVals));
-        end
-    end
+    [meanVals, zVals] = computeMeanZ(vid);
+    if isempty(meanVals), continue; end
+    zVals = zVals - refZ;
     plot(zVals, meanVals, 'Color', colors(v,:), 'LineWidth', 1.5);
 end
 
-xlabel('Z position','Interpreter','latex','FontSize',14);
-ylabel('Mean intensity (ROI)','Interpreter','latex','FontSize',14);
+xlabel('$z~(\\mu m)$','Interpreter','latex','FontSize',16);
+ylabel('$\\langle I \\rangle$','Interpreter','latex','FontSize',16);
+set(gca,'FontSize',12);
+axis square;
+pbaspect([1 1 1]);
 box on;
 colormap(colors);
 cb = colorbar;
@@ -62,11 +55,11 @@ if strcmp(cbLabel,'Video index')
     cb.Ticks = 1:nVids;
     cb.TickLabels = arrayfun(@(v)safeName(v), roiData, 'UniformOutput', false);
 else
-    % show min/max relative times
-    tmin = min(relTimes);
-    tmax = max(relTimes);
-    cb.Ticks = linspace(0,1,min(6,nVids));
-    cb.TickLabels = cellstr(datestr(tmin + (tmax-tmin)*cb.Ticks, 'HH:MM:SS'));
+    cb.Label.String = 'time, t (min)';
+    relMin = min(relTimes);
+    relMax = max(relTimes);
+    cb.Ticks = linspace(relMin, relMax, min(6,nVids));
+    cb.TickLabels = arrayfun(@(t) sprintf('%.2f', t), cb.Ticks, 'UniformOutput', false);
 end
 
 hold off;
