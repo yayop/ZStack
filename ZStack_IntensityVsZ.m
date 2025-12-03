@@ -264,14 +264,14 @@ zPeak = zf(idx);
 end
 
 function zc = centroidZ(zVals, yVals)
-fin = ~isnan(zVals) & ~isnan(yVals) & numel(zVals)==numel(yVals);
-if numel(zVals) ~= numel(yVals)
-    n = min(numel(zVals), numel(yVals));
-    zVals = zVals(1:n);
-    yVals = yVals(1:n);
-    fin = ~isnan(zVals) & ~isnan(yVals);
-end
-zVals = zVals(fin); yVals = yVals(fin);
+zVals = zVals(:);
+yVals = yVals(:);
+n = min(numel(zVals), numel(yVals));
+zVals = zVals(1:n);
+yVals = yVals(1:n);
+fin = ~isnan(zVals) & ~isnan(yVals);
+zVals = zVals(fin);
+yVals = yVals(fin);
 if isempty(zVals) || all(yVals<=0)
     zc = NaN;
     return;
