@@ -53,10 +53,10 @@ if ~isempty(relTimes)
 end
 
 minZall = inf; maxZall = -inf;
-zMaxList = nan(numel(idxPlot),1);
-tList = duration(zeros(numel(idxPlot),1),0,0); % store as duration
-for v = 1:numel(idxPlot)
-    vid = roiDataPlot(v);
+zMaxList = nan(nVids,1);
+tList = duration(zeros(nVids,1),0,0); % store as duration
+for v = 1:nVids
+    vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
     zVals = zVals - refZ;
@@ -65,23 +65,28 @@ for v = 1:numel(idxPlot)
     meanVals = meanVals(order);
     minZall = min(minZall, min(zVals));
     maxZall = max(maxZall, max(zVals));
-    plot(ax1, zVals, meanVals, 'Color', colorsPlot(v,:), 'LineWidth', 0.8);
-    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(v,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
-    % Mark max point (interpolated)
+    % Store peaks for all
     if numel(meanVals) > 2 && numel(zVals) > 2
         [zMaxInterp, yMaxInterp] = interpMax(zVals, meanVals);
-        scatter(ax1, zMaxInterp, yMaxInterp, 60, '*', 'MarkerEdgeColor', [0 0 0], ...
-            'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
         zMaxList(v) = zMaxInterp;
     else
         [~, imax] = max(meanVals);
-        scatter(ax1, zVals(imax), meanVals(imax), 60, '*', 'MarkerEdgeColor', [0 0 0], ...
-            'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
         zMaxList(v) = zVals(imax);
     end
-    if ~isempty(relTimesPlot)
-        tList(v) = relTimesPlot(v);
+    if ~isempty(relTimes)
+        tList(v) = relTimes(v);
     end
+    % Plot only subset
+    if ~ismember(v, idxPlot), continue; end
+    vidIdxPlot = find(idxPlot==v,1,'first');
+    plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.8);
+    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.9);
+    % Mark max point (interpolated)
+    zMark = zMaxList(v);
+    yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
+    scatter(ax1, zMark, yMark, 60, '*', 'MarkerEdgeColor', [0 0 0], ...
+        'MarkerFaceColor', 'y', 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+end
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -100,8 +105,14 @@ cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'none';
 cb.EdgeColor = 'none';
-cb.Ticks = [0 41 82];
-cb.Limits = [0 max(max(cb.Ticks), relSpan)];
+caxis(ax1,[0 relSpan]);
+tickVals = [0 41 82];
+tickVals = tickVals(tickVals <= relSpan);
+if isempty(tickVals)
+    tickVals = [0 relSpan];
+end
+cb.Ticks = tickVals;
+cb.TickLabels = arrayfun(@(t)sprintf('%.1f', t), tickVals, 'UniformOutput', false);
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
