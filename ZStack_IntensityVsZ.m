@@ -122,7 +122,7 @@ if numel(timeVals) >= 2
     if zspan == 0, zspan = 1; end
     tText = min(timeVals) + 0.05*tspan;
     zText = max(zMaxList(validTZ)) + 0.05*zspan;
-    text(ax2, tText, zText, sprintf('$v =$ %.3f ($\\mu$m/min)', pfit(1)), ...
+    text(ax2, tText, zText, sprintf('$|v| =$ %.1f ($\\mu$m/min)', abs(pfit(1))), ...
         'FontSize',12,'Color',fitColor,'Interpreter','latex');
 end
 xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',16);
