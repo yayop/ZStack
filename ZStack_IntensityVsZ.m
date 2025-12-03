@@ -94,17 +94,13 @@ caxis(ax1,[0 relSpan]);
 cb = colorbar(ax1);
 cb.Label.String = '$t$ (min)';
 cb.Label.Interpreter = 'latex';
-cb.TickLabelInterpreter = 'latex';
+cb.TickLabelInterpreter = 'tex'; % keep ticks horizontal/unstyled
 cb.Color = [0 0 0];
 cb.EdgeColor = 'k';
-% Build ticks explicitly and clamp to the color range
-tickVals = unique([0 linspace(0, relSpan, 5) 41 82]);
-tickVals = tickVals(tickVals <= relSpan);
-if numel(tickVals) < 2
-    tickVals = [0 relSpan];
-end
+% Three integer ticks across the span
+tickVals = linspace(0, relSpan, 3);
 cb.Ticks = tickVals;
-cb.TickLabels = arrayfun(@(t)sprintf('%.1f', t), tickVals, 'UniformOutput', false);
+cb.TickLabels = arrayfun(@(t)sprintf('%d', round(t)), tickVals, 'UniformOutput', false);
 
 % Second subplot: z-peak vs time
 ax2 = nexttile; hold(ax2,'on');
