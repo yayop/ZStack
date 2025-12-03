@@ -107,7 +107,8 @@ ax2 = nexttile; hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
-    'MarkerFaceColor', colors(validTZ,:), 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, 'MarkerFaceAlpha', 1);
+    'MarkerFaceColor','flat', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.8, ...
+    'MarkerFaceAlpha', 1, 'CData', colors(validTZ,:));
 if numel(timeVals) >= 2
     pfit = polyfit(timeVals, zMaxList(validTZ), 1);
     tLine = linspace(min(timeVals), max(timeVals), 100);
