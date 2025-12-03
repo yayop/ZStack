@@ -105,6 +105,8 @@ plot(ax2, minutes(tList(validTZ)), zMaxList(validTZ), 'Color',[0.2 0.2 0.2], 'Li
 xlabel(ax2,'time, t (min)','Interpreter','latex','FontSize',16);
 ylabel(ax2,'$z_{\\max}~(\\mu m)$','Interpreter','latex','FontSize',16);
 set(ax2,'FontSize',12);
+axis(ax2,'square');
+pbaspect(ax2,[1 1 1]);
 box(ax2,'on');
 
 hold(ax1,'off'); hold(ax2,'off');
