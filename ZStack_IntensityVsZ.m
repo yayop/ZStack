@@ -257,7 +257,7 @@ function [colors, label, relTimes, relSpan, baseCmap] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    baseCmap = abyss(256);
+    baseCmap = sky(256);
     colors = baseCmap(round(linspace(1,size(baseCmap,1), n)),:);
     label = 'Video index';
     relTimes = [];
@@ -279,7 +279,7 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-baseCmap = abyss(256);
+baseCmap = sky(256);
 idx = 1 + round(tnorm*(size(baseCmap,1)-1));
 colors = baseCmap(idx,:);
 end
