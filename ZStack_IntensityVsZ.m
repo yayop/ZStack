@@ -93,7 +93,8 @@ for v = 1:nVids
     zFit = zFit(1:nfit);
     yFit = yFit(1:nfit);
     fin = isfinite(zFit) & isfinite(yFit);
-    if nnz(fin) >= 4
+    nGood = nnz(fin);
+    if nGood >= 4
         zFit = zFit(fin);
         yFit = yFit(fin);
         A0 = max(yFit) - min(yFit);
@@ -115,8 +116,19 @@ for v = 1:nVids
             fitMu(v) = res.mu;
             fitSigma(v) = res.sigma;
         catch
-            % leave NaNs on failure
+            % fallback to simple estimates
+            fitA(v) = A0;
+            fitB(v) = B0;
+            fitMu(v) = mu0;
+            fitSigma(v) = sigma0;
         end
+    elseif nGood >= 2
+        zFit = zFit(fin);
+        yFit = yFit(fin);
+        fitA(v) = max(yFit) - min(yFit);
+        fitB(v) = min(yFit);
+        fitMu(v) = zMark;
+        fitSigma(v) = max([std(zFit), range(zFit)/4, eps]);
     end
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
@@ -182,30 +194,7 @@ box(ax2,'on');
 
 hold(ax1,'off'); hold(ax2,'off');
 
-% Third figure: centered and normalized profiles (linear and semilogy)
-fig2 = figure('Name','Centered normalized profiles','Color','w');
-tiledlayout(fig2,1,2,'TileSpacing','compact','Padding','compact');
-ax3 = nexttile; hold(ax3,'on');
-ax4 = nexttile; hold(ax4,'on');
-for v = 1:nVids
-    zc = zShiftCells{v};
-    yc = yNormCells{v};
-    if isempty(zc) || isempty(yc), continue; end
-    scatter(ax3, zc, yc, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9, 'LineWidth', 0.5);
-    scatter(ax4, zc, yc, 18, 'MarkerFaceColor', colors(v,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9, 'LineWidth', 0.5);
-end
-xline(ax3,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
-xline(ax4,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
-xlabel(ax3,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
-xlabel(ax4,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
-ylabel(ax3,'$\langle I \\rangle$','Interpreter','latex','FontSize',17);
-xlabel(ax4,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
-ylabel(ax4,'$\langle I \\rangle$','Interpreter','latex','FontSize',17);
-set(ax3,'FontSize',12);
-set(ax4,'FontSize',12,'YScale','log');
-box(ax3,'on'); box(ax4,'on');
-
-% Fourth figure: fit parameters vs time (all fitted curves)
+% Second figure: fit parameters vs time (all fitted curves)
 fig3 = figure('Name','Gaussian fit parameters','Color','w');
 tiledlayout(fig3,2,2,'TileSpacing','compact','Padding','compact');
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
