@@ -226,7 +226,7 @@ for v = 1:nVids
     zv = zStore{v}; yv = yStore{v};
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
-    ystd = (yv - fitB(v)) ./ fitA(v);
+    ystd = (yv - fitB(v)) ./ fitA(v) / (2*pi);
     scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
 end
