@@ -146,7 +146,7 @@ for v = 1:nVids
     end
 end
 
-xlabel(ax1,'z slice index','Interpreter','none','FontSize',14);
+xlabel(ax1,'$z$ ($\mu$ m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
