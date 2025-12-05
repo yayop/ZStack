@@ -154,6 +154,12 @@ for v = 1:nVids
     end
 end
 
+% Simple legend: one marker (data) and one line (fit)
+demoScatter = scatter(ax1, NaN, NaN, 28, 'MarkerFaceColor',[0.3 0.3 0.3], ...
+    'MarkerEdgeColor', [0 0 0], 'DisplayName','Data');
+demoLine = plot(ax1, [NaN NaN], [NaN NaN], 'k--', 'LineWidth', 1, 'DisplayName','Fit');
+legend(ax1,[demoScatter,demoLine],'Location','northeast','Box','off');
+
 xlabel(ax1,'$z$ ($\mu$ m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
