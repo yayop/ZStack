@@ -155,12 +155,12 @@ for v = 1:nVids
 end
 
 % Minimal legend: one marker (data) and one line (fit)
-legendColor = baseCmap(1,:);
-demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',legendColor, ...
+demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',[0 0 0], ...
     'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
 demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
 lgd = legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off','FontWeight','bold');
 lgd.TextColor = [0 0 0];
+lgd.EdgeColor = [0 0 0];
 
 xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
