@@ -148,7 +148,7 @@ for v = 1:nVids
     % Mark peak point
     % Overlay fitted Gaussian (only for plotted subset)
     if ~isnan(fitA(v)) && ~isnan(fitB(v)) && ~isnan(fitMu(v)) && ~isnan(fitSigma(v)) && fitSigma(v) > 0
-        zFine = linspace(min(zVals), max(zVals), 200);
+        zFine = linspace(min([-60, min(zVals)]), max(zVals), 200);
         yFine = fitB(v) + fitA(v) .* exp(-((zFine - fitMu(v)).^2) ./ (4*fitSigma(v).^2));
         plot(ax1, zFine, yFine, 'k--', 'LineWidth', 1);
     end
@@ -160,8 +160,8 @@ set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
 % Fixed x-limits and ticks after shifting by z*
-xlim(ax1,[-20 60]);
-xticks(ax1,[-20 0 20 40 60]);
+xlim(ax1,[-60 60]);
+xticks(ax1,[-60 -40 -20 0 20 40 60]);
 box(ax1,'on');
 colormap(ax1, baseCmap);
 caxis(ax1,[0 relSpan]);
