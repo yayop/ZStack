@@ -143,8 +143,7 @@ for v = 1:nVids
     % Plot only subset
     if ~ismember(v, idxPlot), continue; end
     vidIdxPlot = find(idxPlot==v,1,'first');
-    plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.5);
-    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
+    scatter(ax1, zVals, meanVals, 28, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
     % Mark peak point
     % Overlay fitted Gaussian (only for plotted subset)
     if ~isnan(fitA(v)) && ~isnan(fitB(v)) && ~isnan(fitMu(v)) && ~isnan(fitSigma(v)) && fitSigma(v) > 0
