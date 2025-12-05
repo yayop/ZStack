@@ -205,11 +205,12 @@ set(ax3,'FontSize',12);
 set(ax4,'FontSize',12,'YScale','log');
 box(ax3,'on'); box(ax4,'on');
 
-% Fourth figure: fit parameters vs time
+% Fourth figure: fit parameters vs time (all fitted curves)
 fig3 = figure('Name','Gaussian fit parameters','Color','w');
 tiledlayout(fig3,2,2,'TileSpacing','compact','Padding','compact');
-validFit = ~isnan(fitA) & ~isnan(minutes(tList));
-tmins = minutes(tList(validFit));
+validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
+tminsAll = minutes(tList);
+tmins = tminsAll(validFit);
 cFit = colors(validFit,:);
 axA = nexttile; hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
