@@ -226,12 +226,12 @@ for v = 1:nVids
     zv = zStore{v}; yv = yStore{v};
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
-    ystd = ((yv - fitB(v)) ./ fitA(v)) .* (fitSigma(v)*sqrt(2*pi));
+    ystd = (yv - fitB(v)) ./ fitA(v);
     scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
 end
 xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
-ylabel(axN,'$((I-B)/A)\\,\\sigma\\sqrt{2\\pi}$','Interpreter','latex','FontSize',14);
+ylabel(axN,'$(I-B)/A$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
 
