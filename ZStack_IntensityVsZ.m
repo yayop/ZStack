@@ -1,8 +1,8 @@
 % Script: plots mean ROI intensity vs Z for each video in all_videos_roi.mat
 % Configure the source file here:
 matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
-matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
-matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
+%matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
+%matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
     if isequal(f,0), error('File not found.'); end
@@ -39,13 +39,7 @@ ax1 = nexttile; hold(ax1,'on');
 
 % Reference z0 from latest curve (gaussian peak if possible)
 refZ = 0;
-if ~isempty(relTimes)
-    [~, refVid] = max(relTimes);
-    [refMean, refZvals] = computeMeanZ(roiData(refVid));
-    if ~isempty(refMean) && ~isempty(refZvals)
-        [refZ, ~] = gaussianPeak(refZvals, refMean);
-    end
-end
+% (No z-shift applied; use raw metadata z positions)
 
 minZall = inf; maxZall = -inf;
 zMaxList = nan(nVids,1); % now stores centroid z
@@ -60,7 +54,7 @@ for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
-    zVals = zVals - refZ;
+    % keep z values as reported (no shifting)
     % Ensure monotonic z for integration/peak finding
     [zVals, order] = sort(zVals);
     meanVals = meanVals(order);
@@ -151,16 +145,16 @@ for v = 1:nVids
         plot(ax1, zFine, yFine, 'k--', 'LineWidth', 1);
     end
 end
-xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
 xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
-% Fixed x-limits for z
-xlim(ax1,[-20 65]);
-xticks(ax1,[-20 0 20 40 60]);
+% Let x-limits follow the metadata range
+if isfinite(minZall) && isfinite(maxZall)
+    xlim(ax1,[minZall maxZall]);
+end
 box(ax1,'on');
 colormap(ax1, baseCmap);
 caxis(ax1,[0 relSpan]);
