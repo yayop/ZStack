@@ -87,10 +87,15 @@ for v = 1:nVids
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
         'MarkerFaceColor', 'y', 'LineWidth', 0.5, 'MarkerFaceAlpha', 1);
     % Fit Gaussian model B + A*exp(-(x-mu)^2/(4*sigma^2))
-    fin = isfinite(zVals) & isfinite(meanVals);
+    zFit = zVals(:);
+    yFit = meanVals(:);
+    nfit = min(numel(zFit), numel(yFit));
+    zFit = zFit(1:nfit);
+    yFit = yFit(1:nfit);
+    fin = isfinite(zFit) & isfinite(yFit);
     if nnz(fin) >= 4
-        zFit = zVals(fin);
-        yFit = meanVals(fin);
+        zFit = zFit(fin);
+        yFit = yFit(fin);
         A0 = max(yFit) - min(yFit);
         B0 = min(yFit);
         mu0 = zMark;
