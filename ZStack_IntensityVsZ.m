@@ -54,8 +54,8 @@ fitA = nan(nVids,1);
 fitB = nan(nVids,1);
 fitMu = nan(nVids,1);
 fitSigma = nan(nVids,1);
-zShiftCells = cell(nVids,1);
-yNormCells = cell(nVids,1);
+zStore = cell(nVids,1);
+yStore = cell(nVids,1);
 for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
@@ -69,8 +69,8 @@ for v = 1:nVids
     % Peak via gaussian fit (fallback to parabolic if needed)
     [zMark, yMark] = gaussianPeak(zVals, meanVals);
     zMaxList(v) = zMark;
-    zShiftCells{v} = zVals - zMark;
-    yNormCells{v} = meanVals;
+    zStore{v} = zVals;
+    yStore{v} = meanVals;
     if ~isempty(relTimes)
         tList(v) = relTimes(v);
     end
@@ -253,6 +253,24 @@ xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, fitSigma(validFit));
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
 set([axA axB axMu axS],'FontSize',12,'Box','on');
+
+% Third figure: collapsed profiles (I-B)/A vs (z-mu)/sigma for all curves
+fig4 = figure('Name','Collapsed Gaussian-normalized profiles','Color','w');
+axN = axes(fig4); hold(axN,'on');
+for v = 1:nVids
+    if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
+    if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
+    zv = zStore{v}; yv = yStore{v};
+    if isempty(zv) || isempty(yv), continue; end
+    zstd = (zv - fitMu(v)) ./ fitSigma(v);
+    ystd = (yv - fitB(v)) ./ fitA(v);
+    scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
+        'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
+end
+xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
+ylabel(axN,'$(I-B)/A$','Interpreter','latex','FontSize',14);
+set(axN,'FontSize',12);
+axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
