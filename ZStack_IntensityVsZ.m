@@ -199,24 +199,39 @@ hold(ax1,'off'); hold(ax2,'off');
 
 % Second figure: fit parameters vs time (all fitted curves)
 fig3 = figure('Name','Gaussian fit parameters','Color','w');
-tiledlayout(fig3,2,2,'TileSpacing','compact','Padding','compact');
+scr = get(0,'ScreenSize');
+figW = scr(3)/2; figH = scr(4)/2;
+fig3.Position = [scr(3)/4, scr(4)/4, figW, figH];
+tiledlayout(fig3,1,4,'TileSpacing','compact','Padding','compact');
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
 tminsAll = minutes(tList);
 tmins = tminsAll(validFit);
 cFit = colors(validFit,:);
+commonTicks = [0 20 40 60 80];
 axA = nexttile; hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+applyAxisStyle(axA, commonTicks);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
+
 axB = nexttile; hold(axB,'on');
 scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+applyAxisStyle(axB, commonTicks);
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
+
 axMu = nexttile; hold(axMu,'on');
 scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+[absSlopeMu] = addLinFit(axMu, tmins, fitMu(validFit));
+applyAxisStyle(axMu, commonTicks);
+title(axMu, sprintf('$|v| = %.3f$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex'); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
+
 axS = nexttile; hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+[absSlopeSig] = addLinFit(axS, tmins, fitSigma(validFit));
+applyAxisStyle(axS, commonTicks);
+title(axS, sprintf('$|v_\\sigma| = %.3f$', absSlopeSig),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axS,'$t$ (min)','Interpreter','latex'); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
-set([axA axB axMu axS],'FontSize',12,'Box','on');
+set([axA axB axMu axS],'FontSize',12,'Box','on','DataAspectRatio',[1 1 1]);
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
@@ -381,6 +396,28 @@ if numel(zVals) < 3 || all(yVals<=0)
     [yPeak, idx] = max(yVals);
     zPeak = zVals(idx);
     return;
+end
+
+function applyAxisStyle(ax, commonTicks)
+xlim(ax,[0 85]);
+xticks(ax, commonTicks);
+axis(ax,'square');
+pbaspect(ax,[1 1 1]);
+end
+
+function absSlope = addLinFit(ax, tvals, yvals)
+absSlope = NaN;
+fin = isfinite(tvals) & isfinite(yvals);
+if nnz(fin) < 2, return; end
+t = tvals(fin); y = yvals(fin);
+out = isoutlier(y);
+mask = ~out;
+if nnz(mask) < 2, mask = fin; end
+t = t(mask); y = y(mask);
+p = polyfit(t, y, 1);
+absSlope = abs(p(1));
+tLine = linspace(min(t), max(t), 100);
+plot(ax, tLine, polyval(p, tLine), 'k--', 'LineWidth', 1);
 end
 [~, imax] = max(yVals);
 win = max(1, imax-2):min(numel(zVals), imax+2);
