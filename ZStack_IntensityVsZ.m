@@ -144,17 +144,23 @@ for v = 1:nVids
     % Plot only subset
     if ~ismember(v, idxPlot), continue; end
     vidIdxPlot = find(idxPlot==v,1,'first');
-    scatter(ax1, zVals, meanVals, 28, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
+    scatter(ax1, zVals, meanVals, 30, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9,'LineWidth',0.1);
     % Mark peak point
     % Overlay fitted Gaussian (only for plotted subset)
     if ~isnan(fitA(v)) && ~isnan(fitB(v)) && ~isnan(fitMu(v)) && ~isnan(fitSigma(v)) && fitSigma(v) > 0
         zFine = linspace(min(zVals), max(zVals), 200);
         yFine = fitB(v) + fitA(v) .* exp(-((zFine - fitMu(v)).^2) ./ (4*fitSigma(v).^2));
-        plot(ax1, zFine, yFine, 'k--', 'LineWidth', 1);
+        plot(ax1, zFine, yFine, 'k--', 'LineWidth', 2);
     end
 end
 
-xlabel(ax1,'$z$ ($\mu$ m)','Interpreter','latex','FontSize',17);
+% Minimal legend: one marker (data) and one line (fit)
+demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',[0.3 0.3 0.3], ...
+    'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
+demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
+legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off');
+
+xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
@@ -187,27 +193,27 @@ cFit = colors(validFit,:);
 xt = [0 20 40 60 80];
 
 axA = nexttile(2); hold(axA,'on');
-scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+scatter(axA, tmins, fitA(validFit), 50, cFit, 'filled','MarkerEdgeColor',[0 0 0],'LineWidth',0.1);
 xlim(axA,[0 80]); xticks(axA, xt); setAdaptiveY(axA, fitA(validFit));
 axis(axA,'square'); pbaspect(axA,[1 1 1]); set(axA,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
 
 axB = nexttile(3); hold(axB,'on');
-scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+scatter(axB, tmins, fitB(validFit), 50, cFit, 'filled','MarkerEdgeColor',[0 0 0],'LineWidth',0.1);
 xlim(axB,[0 80]); xticks(axB, xt); setAdaptiveY(axB, fitB(validFit));
 axis(axB,'square'); pbaspect(axB,[1 1 1]); set(axB,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
 
 axMu = nexttile(4); hold(axMu,'on');
-scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+scatter(axMu, tmins, fitMu(validFit), 50, cFit, 'filled','MarkerEdgeColor',[0 0 0],'LineWidth',0.1);
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
 axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 1]);
-title(axMu, sprintf('$|v| = %.2f~(\\mu$ m/min)', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
+title(axMu, sprintf('$|v| = %.2f~(\\mu$m/min)', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
 axS = nexttile(5); hold(axS,'on');
-scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+scatter(axS, tmins, fitSigma(validFit), 50, cFit, 'filled','MarkerEdgeColor',[0 0 0],'LineWidth',0.1);
 xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, fitSigma(validFit));
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
@@ -227,10 +233,10 @@ for v = 1:nVids
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
     ystd = (yv - fitB(v)) ./ fitA(v);
-    scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
-        'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
+    scatter(axN, zstd, ystd, 50, 'MarkerFaceColor', colors(v,:), ...
+        'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.1);
 end
-xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
+xlabel(axN,'$(z-\mu)/\sigma$','Interpreter','latex','FontSize',14);
 ylabel(axN,'$(I-B)/A$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
@@ -251,7 +257,7 @@ function [colors, label, relTimes, relSpan, baseCmap] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    baseCmap = winter(256);
+    baseCmap = abyss(256);
     colors = baseCmap(round(linspace(1,size(baseCmap,1), n)),:);
     label = 'Video index';
     relTimes = [];
