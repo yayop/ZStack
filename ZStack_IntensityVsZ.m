@@ -197,47 +197,47 @@ box(ax2,'on');
 
 hold(ax1,'off'); hold(ax2,'off');
 
-% Second figure: fit parameters vs time (all fitted curves)
+% Second figure: fit parameters vs time (all fitted curves) with fixed x ticks and square aspect
 fig3 = figure('Name','Gaussian fit parameters','Color','w');
 scr = get(0,'ScreenSize');
 figH = scr(4)*0.6;
-figW = min(scr(3)*0.95, figH*4); % wide enough to keep tiles square-ish
+figW = min(scr(3)*0.95, figH*4); % wide enough for 4 square tiles
 fig3.Position = [(scr(3)-figW)/2, (scr(4)-figH)/2, figW, figH];
-tiled = tiledlayout(fig3,1,4,'TileSpacing','none','Padding','compact');
+tiledlayout(fig3,1,4,'TileSpacing','none','Padding','compact');
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
 tminsAll = minutes(tList);
 tmins = tminsAll(validFit);
 cFit = colors(validFit,:);
-commonTicks = [0 20 40 60 80];
+xt = [0 20 40 60 80];
+
 axA = nexttile; hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
-applyAxisStyle(axA, commonTicks);
-xDataA = fitA(validFit);
-setAdaptiveY(axA, xDataA);
+xlim(axA,[0 80]); xticks(axA, xt); setAdaptiveY(axA, fitA(validFit));
+axis(axA,'square'); pbaspect(axA,[1 1 1]); set(axA,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
 
 axB = nexttile; hold(axB,'on');
 scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
-applyAxisStyle(axB, commonTicks);
-setAdaptiveY(axB, fitB(validFit));
+xlim(axB,[0 80]); xticks(axB, xt); setAdaptiveY(axB, fitB(validFit));
+axis(axB,'square'); pbaspect(axB,[1 1 1]); set(axB,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
 
 axMu = nexttile; hold(axMu,'on');
 scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
-applyAxisStyle(axMu, commonTicks);
-setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
+xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
+axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 1]);
 title(axMu, sprintf('$|v| = %.3f$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
-xlabel(axMu,'$t$ (min)','Interpreter','latex'); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
+xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
 axS = nexttile; hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 [absSlopeSig, yLineSig] = addLinFit(axS, tmins, fitSigma(validFit));
-applyAxisStyle(axS, commonTicks);
-setAdaptiveY(axS, [fitSigma(validFit); yLineSig(:)]);
+xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, [fitSigma(validFit); yLineSig(:)]);
+axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
 title(axS, sprintf('$|v_\\sigma| = %.3f$', absSlopeSig),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
-xlabel(axS,'$t$ (min)','Interpreter','latex'); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
-set([axA axB axMu axS],'FontSize',12,'Box','on','DataAspectRatio',[1 1 1]);
+xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
+set([axA axB axMu axS],'FontSize',12,'Box','on');
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
@@ -439,14 +439,6 @@ catch
     zPeak = zVert;
     yPeak = yVert;
 end
-end
-
-function applyAxisStyle(ax, commonTicks)
-xlim(ax,[0 85]);
-xticks(ax, commonTicks);
-axis(ax,'square');
-pbaspect(ax,[1 1 1]);
-set(ax,'PlotBoxAspectRatio',[1 1 1]);
 end
 
 function [absSlope, yLine] = addLinFit(ax, tvals, yvals)
