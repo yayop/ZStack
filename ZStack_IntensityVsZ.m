@@ -200,10 +200,10 @@ hold(ax1,'off'); hold(ax2,'off');
 % Second figure: fit parameters vs time (all fitted curves)
 fig3 = figure('Name','Gaussian fit parameters','Color','w');
 scr = get(0,'ScreenSize');
-figH = scr(4)/2;
-figW = min(scr(3), 4*figH); % ensure space for 4 square tiles
+figH = scr(4)*0.6;
+figW = min(scr(3)*0.95, figH*4); % wide enough to keep tiles square-ish
 fig3.Position = [(scr(3)-figW)/2, (scr(4)-figH)/2, figW, figH];
-tiledlayout(fig3,1,4,'TileSpacing','compact','Padding','compact');
+tiled = tiledlayout(fig3,1,4,'TileSpacing','none','Padding','compact');
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
 tminsAll = minutes(tList);
 tmins = tminsAll(validFit);
@@ -477,4 +477,6 @@ ylim(ax, [ymin - pad, ymax + pad]);
 axis(ax,'square');
 pbaspect(ax,[1 1 1]);
 set(ax,'PlotBoxAspectRatio',[1 1 1]);
+% keep same x-limits after aspect adjustments
+xlim(ax,[0 85]);
 end
