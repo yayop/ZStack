@@ -89,10 +89,12 @@ for v = 1:nVids
         B0 = min(yFit);
         mu0 = zMark;
         sigma0 = max(std(zFit), eps);
+        [~, imaxFit] = max(yFit);
+        peakZ = zFit(imaxFit);
         seeds = [
             A0, B0, mu0, sigma0;
             A0, B0, mu0, max(range(zFit)/4, eps);
-            A0, B0, zFit(yFit==max(yFit)), max(range(zFit)/6, eps)
+            A0, B0, peakZ, max(range(zFit)/6, eps)
             ];
         done = false;
         for si = 1:size(seeds,1)
