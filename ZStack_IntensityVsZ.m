@@ -146,9 +146,6 @@ for v = 1:nVids
     plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.5);
     scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
     % Mark peak point
-    yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
-    scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
-        'MarkerFaceColor', 'y', 'LineWidth', 0.5, 'MarkerFaceAlpha', 1);
     % Overlay fitted Gaussian (only for plotted subset)
     if ~isnan(fitA(v)) && ~isnan(fitB(v)) && ~isnan(fitMu(v)) && ~isnan(fitSigma(v)) && fitSigma(v) > 0
         zFine = linspace(min(zVals), max(zVals), 200);
