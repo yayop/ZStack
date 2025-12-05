@@ -225,7 +225,7 @@ hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'o
 axN = nexttile(6); hold(axN,'on');
 nGauss = linspace(-4,4,200);
 % Model overlay matches fit form: B + A*exp(-(z-mu)^2/(4 sigma^2)) => exp(-0.25 x^2) when x = (z-mu)/sigma
-plot(axN, nGauss, exp(-0.25*nGauss.^2), 'b-', 'LineWidth', 1.2, 'DisplayName','Gaussian overlay');
+plot(axN, nGauss, exp(-0.25*nGauss.^2), 'k-', 'LineWidth', 1.2, 'DisplayName','Gaussian overlay');
 for v = 1:nVids
     if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
     if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
