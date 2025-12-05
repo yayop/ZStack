@@ -127,6 +127,12 @@ for v = 1:nVids
         fitMu(v) = zMark;
         fitSigma(v) = max([std(zFit), range(zFit)/4, eps]);
     end
+    % Overlay fitted Gaussian (only for plotted subset)
+    if ~isnan(fitA(v)) && ~isnan(fitB(v)) && ~isnan(fitMu(v)) && ~isnan(fitSigma(v)) && fitSigma(v) > 0
+        zFine = linspace(min(zVals), max(zVals), 200);
+        yFine = fitB(v) + fitA(v) .* exp(-((zFine - fitMu(v)).^2) ./ (4*fitSigma(v).^2));
+        plot(ax1, zFine, yFine, 'k--', 'LineWidth', 1);
+    end
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
