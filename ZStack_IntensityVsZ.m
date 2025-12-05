@@ -159,7 +159,7 @@ legendColor = baseCmap(1,:);
 demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',legendColor, ...
     'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
 demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
-legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off');
+legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off','FontWeight','bold');
 
 xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
@@ -226,7 +226,6 @@ hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'o
 axN = nexttile(6); hold(axN,'on');
 nGauss = linspace(-4,4,200);
 % Model overlay matches fit form: B + A*exp(-(z-mu)^2/(4 sigma^2)) => exp(-0.25 x^2) when x = (z-mu)/sigma
-plot(axN, nGauss, exp(-0.25*nGauss.^2), 'k-', 'LineWidth', 1.2, 'DisplayName','Gaussian overlay');
 for v = 1:nVids
     if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
     if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
@@ -237,6 +236,7 @@ for v = 1:nVids
     scatter(axN, zstd, ystd, 50, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.1);
 end
+plot(axN, nGauss, exp(-0.25*nGauss.^2), 'k--', 'LineWidth', 1.5, 'DisplayName','Gaussian overlay');
 xlabel(axN,'$(z-\mu)/\sigma$','Interpreter','latex','FontSize',14);
 ylabel(axN,'$(I-B)/A$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
@@ -457,7 +457,7 @@ p = polyfit(t, y, 1);
 absSlope = abs(p(1));
 tLine = linspace(min(t), max(t), 100);
 yLine = polyval(p, tLine);
-plot(ax, tLine, yLine, 'k--', 'LineWidth', 1);
+plot(ax, tLine, yLine, 'k--', 'LineWidth', 3);
 end
 
 function setAdaptiveY(ax, ydata)
