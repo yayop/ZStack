@@ -242,7 +242,7 @@ scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
 axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 1]);
-title(axMu, sprintf('$|v| = %.2f~(\\mu m/s)$', absSlopeMu/60),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
+title(axMu, sprintf('$|v| = %.2f~(\\mu m/min)$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
 axS = nexttile; hold(axS,'on');
@@ -250,7 +250,7 @@ scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 
 [absSlopeSig, yLineSig] = addLinFit(axS, tmins, fitSigma(validFit));
 xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, [fitSigma(validFit); yLineSig(:)]);
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
-title(axS, sprintf('$|v_\\sigma| = %.3f~(\\mu m/s)$', absSlopeSig/60),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
+title(axS, sprintf('$|v_\\sigma| = %.2f~(\\mu m/min)$', absSlopeSig),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
 set([axA axB axMu axS],'FontSize',12,'Box','on');
 
