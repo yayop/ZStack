@@ -200,8 +200,9 @@ hold(ax1,'off'); hold(ax2,'off');
 % Second figure: fit parameters vs time (all fitted curves)
 fig3 = figure('Name','Gaussian fit parameters','Color','w');
 scr = get(0,'ScreenSize');
-figW = scr(3)/2; figH = scr(4)/2;
-fig3.Position = [scr(3)/4, scr(4)/4, figW, figH];
+figH = scr(4)/2;
+figW = min(scr(3), 4*figH); % ensure space for 4 square tiles
+fig3.Position = [(scr(3)-figW)/2, (scr(4)-figH)/2, figW, figH];
 tiledlayout(fig3,1,4,'TileSpacing','compact','Padding','compact');
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
 tminsAll = minutes(tList);
