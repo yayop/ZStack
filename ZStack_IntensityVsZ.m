@@ -53,6 +53,8 @@ end
 minZall = inf; maxZall = -inf;
 zMaxList = nan(nVids,1); % now stores centroid z
 tList = duration(zeros(nVids,1),0,0); % store as duration
+zShiftCells = cell(nVids,1);
+yNormCells = cell(nVids,1);
 for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
@@ -66,6 +68,11 @@ for v = 1:nVids
     % Peak via gaussian fit (fallback to parabolic if needed)
     [zMark, yMark] = gaussianPeak(zVals, meanVals);
     zMaxList(v) = zMark;
+    maxVal = max(meanVals,[],'omitnan');
+    if maxVal > 0
+        zShiftCells{v} = zVals - zMark;
+        yNormCells{v} = meanVals ./ maxVal;
+    end
     if ~isempty(relTimes)
         tList(v) = relTimes(v);
     end
@@ -141,6 +148,21 @@ xticks(ax2,[0 20 40 60 80]);
 box(ax2,'on');
 
 hold(ax1,'off'); hold(ax2,'off');
+
+% Third figure: centered and normalized profiles
+fig2 = figure('Name','Centered normalized profiles','Color','w');
+ax3 = axes(fig2); hold(ax3,'on');
+for v = 1:nVids
+    zc = zShiftCells{v};
+    yc = yNormCells{v};
+    if isempty(zc) || isempty(yc), continue; end
+    plot(ax3, zc, yc, 'Color', colors(v,:), 'LineWidth', 0.6);
+end
+xline(ax3,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
+xlabel(ax3,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
+ylabel(ax3,'$I/I_{\\max}$','Interpreter','latex','FontSize',17);
+set(ax3,'FontSize',12);
+box(ax3,'on');
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
