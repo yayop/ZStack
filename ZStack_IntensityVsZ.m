@@ -1,7 +1,8 @@
 % Script: plots mean ROI intensity vs Z for each video in all_videos_roi.mat
 % Configure the source file here:
-matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
+%matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
 %matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
+matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
     if isequal(f,0), error('File not found.'); end
@@ -85,9 +86,9 @@ ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
-if isfinite(minZall) && isfinite(maxZall)
-    xlim(ax1,[minZall maxZall]);
-end
+% Fixed x-limits for z
+xlim(ax1,[-20 65]);
+xticks(ax1,[-20 0 20 40 60]);
 box(ax1,'on');
 colormap(ax1, baseCmap);
 caxis(ax1,[0 relSpan]);
@@ -134,9 +135,9 @@ ylabel(ax2,'$z^*$($\mu$m)','Interpreter','latex','FontSize',17);
 set(ax2,'FontSize',12);
 axis(ax2,'square');
 pbaspect(ax2,[1 1 1]);
-if ~isempty(timeVals)
-    xlim(ax2,[min(timeVals) max(timeVals)]);
-end
+% Fixed time limits
+xlim(ax2,[0 85]);
+xticks(ax2,[0 20 40 60 80]);
 box(ax2,'on');
 
 hold(ax1,'off'); hold(ax2,'off');
