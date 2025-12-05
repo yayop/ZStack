@@ -155,7 +155,8 @@ for v = 1:nVids
 end
 
 % Minimal legend: one marker (data) and one line (fit)
-demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',[0.3 0.3 0.3], ...
+legendColor = baseCmap(1,:);
+demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',legendColor, ...
     'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
 demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
 legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off');
@@ -257,7 +258,7 @@ function [colors, label, relTimes, relSpan, baseCmap] = computeColors(roiData)
 n = numel(roiData);
 times = extractAbsStart(roiData);
 if isempty(times) || all(isnat(times))
-    baseCmap = sky(256);
+    baseCmap = autumn(256);
     colors = baseCmap(round(linspace(1,size(baseCmap,1), n)),:);
     label = 'Video index';
     relTimes = [];
@@ -279,7 +280,7 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-baseCmap = sky(256);
+baseCmap = autumn(256);
 idx = 1 + round(tnorm*(size(baseCmap,1)-1));
 colors = baseCmap(idx,:);
 end
