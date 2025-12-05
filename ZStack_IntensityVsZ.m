@@ -34,7 +34,7 @@ if ~isempty(relTimesPlot)
     relTimesPlot = relTimesPlot(idxPlot);
 end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
-set(fig,'Units','normalized','Position',[0 0 1 0.6]);
+set(fig,'Units','normalized','Position',[0 0 1 1]);
 tiledlayout(fig,1,6,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile(1); hold(ax1,'on');
 
@@ -203,7 +203,7 @@ scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
 axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 1]);
-title(axMu, sprintf('$|v| = %.2f~(\\mu m/min)$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
+title(axMu, sprintf('$|v| = %.2f~(\\mu$ m/min)', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
 axS = nexttile(5); hold(axS,'on');
@@ -226,12 +226,12 @@ for v = 1:nVids
     zv = zStore{v}; yv = yStore{v};
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
-    ystd = (yv - fitB(v)) ./ (fitA(v)*fitSigma(v)*sqrt(2*pi));
+    ystd = ((yv - fitB(v)) ./ fitA(v)) .* (fitSigma(v)*sqrt(2*pi));
     scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
 end
 xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
-ylabel(axN,'$(I-B)/(A\\sigma\\sqrt{2\\pi})$','Interpreter','latex','FontSize',14);
+ylabel(axN,'$((I-B)/A)\\,\\sigma\\sqrt{2\\pi}$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
 
