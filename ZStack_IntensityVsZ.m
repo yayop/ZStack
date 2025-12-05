@@ -1,7 +1,7 @@
 % Script: plots mean ROI intensity vs Z for each video in all_videos_roi.mat
 % Configure the source file here:
 matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
-%matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
+matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
 %matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
@@ -89,21 +89,36 @@ for v = 1:nVids
         B0 = min(yFit);
         mu0 = zMark;
         sigma0 = max(std(zFit), eps);
-        opts = fitoptions('Method','NonlinearLeastSquares', ...
-            'StartPoint',[A0 B0 mu0 sigma0], ...
-            'Lower',[0 -Inf min(zFit) 0], ...
-            'Upper',[Inf Inf max(zFit) Inf], ...
-            'Display','Off');
-        ft = fittype('B + A*exp(-((x-mu).^2)/(4*sigma^2))', ...
-            'independent','x','coefficients',{'A','B','mu','sigma'}, ...
-            'options',opts);
-        try
-            res = fit(zFit(:), yFit(:), ft, opts);
-            fitA(v) = res.A;
-            fitB(v) = res.B;
-            fitMu(v) = res.mu;
-            fitSigma(v) = res.sigma;
-        catch
+        seeds = [
+            A0, B0, mu0, sigma0;
+            A0, B0, mu0, max(range(zFit)/4, eps);
+            A0, B0, zFit(yFit==max(yFit)), max(range(zFit)/6, eps)
+            ];
+        done = false;
+        for si = 1:size(seeds,1)
+            sp = seeds(si,:);
+            opts = fitoptions('Method','NonlinearLeastSquares', ...
+                'StartPoint',sp, ...
+                'Lower',[0 -Inf min(zFit) 0], ...
+                'Upper',[Inf Inf max(zFit) Inf], ...
+                'Display','Off', ...
+                'Robust','Bisquare');
+            ft = fittype('B + A*exp(-((x-mu).^2)/(4*sigma^2))', ...
+                'independent','x','coefficients',{'A','B','mu','sigma'}, ...
+                'options',opts);
+            try
+                res = fit(zFit(:), yFit(:), ft, opts);
+                fitA(v) = res.A;
+                fitB(v) = res.B;
+                fitMu(v) = res.mu;
+                fitSigma(v) = res.sigma;
+                done = true;
+                break;
+            catch
+                % try next seed
+            end
+        end
+        if ~done
             % fallback to simple estimates
             fitA(v) = A0;
             fitB(v) = B0;
