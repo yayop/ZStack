@@ -2,7 +2,7 @@
 % Configure the source file here:
 matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
 matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
-%matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
+matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
     if isequal(f,0), error('File not found.'); end
@@ -249,10 +249,8 @@ xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$
 
 axS = nexttile; hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
-[absSlopeSig, yLineSig] = addLinFit(axS, tmins, fitSigma(validFit));
-xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, [fitSigma(validFit); yLineSig(:)]);
+xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, fitSigma(validFit));
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
-title(axS, sprintf('$|v_\\sigma| = %.2f~(\\mu m/min)$', absSlopeSig),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
 set([axA axB axMu axS],'FontSize',12,'Box','on');
 
