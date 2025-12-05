@@ -1,8 +1,8 @@
 % Script: plots mean ROI intensity vs Z for each video in all_videos_roi.mat
 % Configure the source file here:
-%matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
+matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_noATP\all_videos_roi.mat"; % edit if needed
 %matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
-matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
+%matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
     if isequal(f,0), error('File not found.'); end
@@ -68,11 +68,8 @@ for v = 1:nVids
     % Peak via gaussian fit (fallback to parabolic if needed)
     [zMark, yMark] = gaussianPeak(zVals, meanVals);
     zMaxList(v) = zMark;
-    maxVal = max(meanVals,[],'omitnan');
-    if maxVal > 0
-        zShiftCells{v} = zVals - zMark;
-        yNormCells{v} = meanVals ./ maxVal;
-    end
+    zShiftCells{v} = zVals - zMark;
+    yNormCells{v} = meanVals;
     if ~isempty(relTimes)
         tList(v) = relTimes(v);
     end
@@ -164,9 +161,10 @@ end
 xline(ax3,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 xline(ax4,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 xlabel(ax3,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
-ylabel(ax3,'$I/I_{\\max}$','Interpreter','latex','FontSize',17);
 xlabel(ax4,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
-ylabel(ax4,'$I/I_{\\max}$','Interpreter','latex','FontSize',17);
+ylabel(ax3,'$\langle I \\rangle$','Interpreter','latex','FontSize',17);
+xlabel(ax4,'$z - z^*$ ($\mu$m)','Interpreter','latex','FontSize',17);
+ylabel(ax4,'$\langle I \\rangle$','Interpreter','latex','FontSize',17);
 set(ax3,'FontSize',12);
 set(ax4,'FontSize',12,'YScale','log');
 box(ax3,'on'); box(ax4,'on');
