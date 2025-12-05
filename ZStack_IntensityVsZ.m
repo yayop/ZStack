@@ -154,12 +154,6 @@ for v = 1:nVids
     end
 end
 
-% Simple legend: one marker (data) and one line (fit)
-demoScatter = scatter(ax1, NaN, NaN, 28, 'MarkerFaceColor',[0.3 0.3 0.3], ...
-    'MarkerEdgeColor', [0 0 0], 'DisplayName','Data');
-demoLine = plot(ax1, [NaN NaN], [NaN NaN], 'k--', 'LineWidth', 1, 'DisplayName','Fit');
-legend(ax1,[demoScatter,demoLine],'Location','northeast','Box','off');
-
 xlabel(ax1,'$z$ ($\mu$ m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
@@ -221,18 +215,17 @@ set([axA axB axMu axS],'FontSize',12,'Box','on');
 
 hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
 
-% Sixth subplot: collapsed profiles normalized by A*sigma*sqrt(2pi)
+% Sixth subplot: collapsed profiles (I-B)/A vs (z-mu)/sigma
 axN = nexttile(6); hold(axN,'on');
 nGauss = linspace(-4,4,200);
-pdfGauss = (1/sqrt(2*pi))*exp(-0.5*nGauss.^2);
-plot(axN, nGauss, pdfGauss, 'b-', 'LineWidth', 1.2, 'DisplayName','Unit Gaussian');
+plot(axN, nGauss, exp(-0.5*nGauss.^2), 'b-', 'LineWidth', 1.2, 'DisplayName','Gaussian overlay');
 for v = 1:nVids
     if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
     if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
     zv = zStore{v}; yv = yStore{v};
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
-    ystd = (yv - fitB(v)) ./ fitA(v) / (2*pi);
+    ystd = (yv - fitB(v)) ./ fitA(v);
     scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
 end
