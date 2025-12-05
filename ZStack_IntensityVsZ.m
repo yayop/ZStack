@@ -159,7 +159,8 @@ legendColor = baseCmap(1,:);
 demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',legendColor, ...
     'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
 demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
-legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off','FontWeight','bold');
+lgd = legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off','FontWeight','bold');
+lgd.TextColor = [0 0 0];
 
 xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
@@ -233,7 +234,7 @@ for v = 1:nVids
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
     ystd = (yv - fitB(v)) ./ fitA(v);
-    scatter(axN, zstd, ystd, 50, 'MarkerFaceColor', colors(v,:), ...
+    scatter(axN, zstd, ystd, 30, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.1);
 end
 plot(axN, nGauss, exp(-0.25*nGauss.^2), 'k--', 'LineWidth', 1.5, 'DisplayName','Gaussian overlay');
