@@ -53,6 +53,10 @@ end
 minZall = inf; maxZall = -inf;
 zMaxList = nan(nVids,1); % now stores centroid z
 tList = duration(zeros(nVids,1),0,0); % store as duration
+fitA = nan(nVids,1);
+fitB = nan(nVids,1);
+fitMu = nan(nVids,1);
+fitSigma = nan(nVids,1);
 zShiftCells = cell(nVids,1);
 yNormCells = cell(nVids,1);
 for v = 1:nVids
@@ -82,6 +86,32 @@ for v = 1:nVids
     yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
     scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
         'MarkerFaceColor', 'y', 'LineWidth', 0.5, 'MarkerFaceAlpha', 1);
+    % Fit Gaussian model B + A*exp(-(x-mu)^2/(4*sigma^2))
+    fin = isfinite(zVals) & isfinite(meanVals);
+    if nnz(fin) >= 4
+        zFit = zVals(fin);
+        yFit = meanVals(fin);
+        A0 = max(yFit) - min(yFit);
+        B0 = min(yFit);
+        mu0 = zMark;
+        sigma0 = max(std(zFit), eps);
+        ft = fittype('B + A*exp(-((x-mu).^2)/(4*sigma^2))', ...
+            'independent','x','coefficients',{'A','B','mu','sigma'});
+        opts = fitoptions(ft,'Method','NonlinearLeastSquares', ...
+            'StartPoint',[A0 B0 mu0 sigma0], ...
+            'Lower',[0 -Inf min(zFit) 0], ...
+            'Upper',[Inf Inf max(zFit) Inf], ...
+            'Display','Off');
+        try
+            res = fit(zFit(:), yFit(:), ft, opts);
+            fitA(v) = res.A;
+            fitB(v) = res.B;
+            fitMu(v) = res.mu;
+            fitSigma(v) = res.sigma;
+        catch
+            % leave NaNs on failure
+        end
+    end
 end
 xline(ax1,0,'--','Color',[0.3 0.3 0.3],'LineWidth',1);
 
@@ -168,6 +198,26 @@ ylabel(ax4,'$\langle I \\rangle$','Interpreter','latex','FontSize',17);
 set(ax3,'FontSize',12);
 set(ax4,'FontSize',12,'YScale','log');
 box(ax3,'on'); box(ax4,'on');
+
+% Fourth figure: fit parameters vs time
+fig3 = figure('Name','Gaussian fit parameters','Color','w');
+tiledlayout(fig3,2,2,'TileSpacing','compact','Padding','compact');
+validFit = ~isnan(fitA) & ~isnan(minutes(tList));
+tmins = minutes(tList(validFit));
+cFit = colors(validFit,:);
+axA = nexttile; hold(axA,'on');
+scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
+axB = nexttile; hold(axB,'on');
+scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
+axMu = nexttile; hold(axMu,'on');
+scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+xlabel(axMu,'$t$ (min)','Interpreter','latex'); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
+axS = nexttile; hold(axS,'on');
+scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
+xlabel(axS,'$t$ (min)','Interpreter','latex'); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
+set([axA axB axMu axS],'FontSize',12,'Box','on');
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
