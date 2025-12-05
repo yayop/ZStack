@@ -211,24 +211,29 @@ commonTicks = [0 20 40 60 80];
 axA = nexttile; hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 applyAxisStyle(axA, commonTicks);
+xDataA = fitA(validFit);
+setAdaptiveY(axA, xDataA);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
 
 axB = nexttile; hold(axB,'on');
 scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 applyAxisStyle(axB, commonTicks);
+setAdaptiveY(axB, fitB(validFit));
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
 
 axMu = nexttile; hold(axMu,'on');
 scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
-[absSlopeMu] = addLinFit(axMu, tmins, fitMu(validFit));
+[absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 applyAxisStyle(axMu, commonTicks);
+setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
 title(axMu, sprintf('$|v| = %.3f$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex'); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
 axS = nexttile; hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
-[absSlopeSig] = addLinFit(axS, tmins, fitSigma(validFit));
+[absSlopeSig, yLineSig] = addLinFit(axS, tmins, fitSigma(validFit));
 applyAxisStyle(axS, commonTicks);
+setAdaptiveY(axS, [fitSigma(validFit); yLineSig(:)]);
 title(axS, sprintf('$|v_\\sigma| = %.3f$', absSlopeSig),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axS,'$t$ (min)','Interpreter','latex'); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
 set([axA axB axMu axS],'FontSize',12,'Box','on','DataAspectRatio',[1 1 1]);
@@ -442,8 +447,8 @@ axis(ax,'square');
 pbaspect(ax,[1 1 1]);
 end
 
-function absSlope = addLinFit(ax, tvals, yvals)
-absSlope = NaN;
+function [absSlope, yLine] = addLinFit(ax, tvals, yvals)
+absSlope = NaN; yLine = [];
 fin = isfinite(tvals) & isfinite(yvals);
 if nnz(fin) < 2, return; end
 t = tvals(fin); y = yvals(fin);
@@ -454,5 +459,17 @@ t = t(mask); y = y(mask);
 p = polyfit(t, y, 1);
 absSlope = abs(p(1));
 tLine = linspace(min(t), max(t), 100);
-plot(ax, tLine, polyval(p, tLine), 'k--', 'LineWidth', 1);
+yLine = polyval(p, tLine);
+plot(ax, tLine, yLine, 'k--', 'LineWidth', 1);
+end
+
+function setAdaptiveY(ax, ydata)
+ydata = ydata(:);
+ydata = ydata(isfinite(ydata));
+if isempty(ydata), return; end
+ymin = min(ydata); ymax = max(ydata);
+span = ymax - ymin;
+if span == 0, span = max(abs(ymin),1); end
+pad = 0.05*span;
+ylim(ax, [ymin - pad, ymax + pad]);
 end
