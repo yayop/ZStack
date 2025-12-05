@@ -74,15 +74,6 @@ for v = 1:nVids
     if ~isempty(relTimes)
         tList(v) = relTimes(v);
     end
-    % Plot only subset
-    if ~ismember(v, idxPlot), continue; end
-    vidIdxPlot = find(idxPlot==v,1,'first');
-    plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.5);
-    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
-    % Mark peak point
-    yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
-    scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
-        'MarkerFaceColor', 'y', 'LineWidth', 0.5, 'MarkerFaceAlpha', 1);
     % Fit Gaussian model B + A*exp(-(x-mu)^2/(4*sigma^2))
     zFit = zVals(:);
     yFit = meanVals(:);
@@ -127,6 +118,15 @@ for v = 1:nVids
         fitMu(v) = zMark;
         fitSigma(v) = max([std(zFit), range(zFit)/4, eps]);
     end
+    % Plot only subset
+    if ~ismember(v, idxPlot), continue; end
+    vidIdxPlot = find(idxPlot==v,1,'first');
+    plot(ax1, zVals, meanVals, 'Color', colorsPlot(vidIdxPlot,:), 'LineWidth', 0.5);
+    scatter(ax1, zVals, meanVals, 18, 'MarkerFaceColor', colorsPlot(vidIdxPlot,:), 'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.9);
+    % Mark peak point
+    yMark = interp1(zVals, meanVals, zMark, 'linear','extrap');
+    scatter(ax1, zMark, yMark, 70, 'p', 'MarkerEdgeColor', [0 0 0], ...
+        'MarkerFaceColor', 'y', 'LineWidth', 0.5, 'MarkerFaceAlpha', 1);
     % Overlay fitted Gaussian (only for plotted subset)
     if ~isnan(fitA(v)) && ~isnan(fitB(v)) && ~isnan(fitMu(v)) && ~isnan(fitSigma(v)) && fitSigma(v) > 0
         zFine = linspace(min(zVals), max(zVals), 200);
