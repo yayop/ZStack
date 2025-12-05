@@ -445,6 +445,7 @@ xlim(ax,[0 85]);
 xticks(ax, commonTicks);
 axis(ax,'square');
 pbaspect(ax,[1 1 1]);
+set(ax,'PlotBoxAspectRatio',[1 1 1]);
 end
 
 function [absSlope, yLine] = addLinFit(ax, tvals, yvals)
@@ -472,4 +473,7 @@ span = ymax - ymin;
 if span == 0, span = max(abs(ymin),1); end
 pad = 0.05*span;
 ylim(ax, [ymin - pad, ymax + pad]);
+axis(ax,'square');
+pbaspect(ax,[1 1 1]);
+set(ax,'PlotBoxAspectRatio',[1 1 1]);
 end
