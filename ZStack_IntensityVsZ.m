@@ -34,8 +34,8 @@ if ~isempty(relTimesPlot)
     relTimesPlot = relTimesPlot(idxPlot);
 end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
-tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
-ax1 = nexttile; hold(ax1,'on');
+tiledlayout(fig,1,6,'TileSpacing','compact','Padding','compact');
+ax1 = nexttile(1); hold(ax1,'on');
 
 % Reference z0 from latest curve (gaussian peak if possible)
 refZ = 0;
@@ -177,7 +177,7 @@ cb.Ticks = tickVals;
 cb.TickLabels = arrayfun(@(t)sprintf('%d', round(t)), tickVals, 'UniformOutput', false);
 
 % Second subplot: z-peak vs time
-ax2 = nexttile; hold(ax2,'on');
+ax2 = nexttile(2); hold(ax2,'on');
 validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
 timeVals = minutes(tList(validTZ));
 scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
@@ -209,34 +209,25 @@ xlim(ax2,[0 85]);
 xticks(ax2,[0 20 40 60 80]);
 box(ax2,'on');
 
-hold(ax1,'off'); hold(ax2,'off');
-
-% Second figure: fit parameters vs time (all fitted curves) with fixed x ticks and square aspect
-fig3 = figure('Name','Gaussian fit parameters','Color','w');
-scr = get(0,'ScreenSize');
-figH = scr(4)*0.45;
-figW = min(scr(3)*0.9, figH*4); % wide enough for 4 square tiles
-fig3.Position = [(scr(3)-figW)/2, (scr(4)-figH)/2, figW, figH];
-tiledlayout(fig3,1,4,'TileSpacing','compact','Padding','compact');
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
 tminsAll = minutes(tList);
 tmins = tminsAll(validFit);
 cFit = colors(validFit,:);
 xt = [0 20 40 60 80];
 
-axA = nexttile; hold(axA,'on');
+axA = nexttile(3); hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 xlim(axA,[0 80]); xticks(axA, xt); setAdaptiveY(axA, fitA(validFit));
 axis(axA,'square'); pbaspect(axA,[1 1 1]); set(axA,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
 
-axB = nexttile; hold(axB,'on');
+axB = nexttile(4); hold(axB,'on');
 scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 xlim(axB,[0 80]); xticks(axB, xt); setAdaptiveY(axB, fitB(validFit));
 axis(axB,'square'); pbaspect(axB,[1 1 1]); set(axB,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
 
-axMu = nexttile; hold(axMu,'on');
+axMu = nexttile(5); hold(axMu,'on');
 scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
@@ -244,12 +235,14 @@ axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 
 title(axMu, sprintf('$|v| = %.2f~(\\mu m/min)$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
-axS = nexttile; hold(axS,'on');
+axS = nexttile(6); hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, fitSigma(validFit));
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
 set([axA axB axMu axS],'FontSize',12,'Box','on');
+
+hold(ax1,'off'); hold(ax2,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
 
 % Third figure: collapsed profiles (I-B)/A vs (z-mu)/sigma for all curves
 fig4 = figure('Name','Collapsed Gaussian-normalized profiles','Color','w');
