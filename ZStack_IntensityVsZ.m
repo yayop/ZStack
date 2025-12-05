@@ -397,28 +397,6 @@ if numel(zVals) < 3 || all(yVals<=0)
     zPeak = zVals(idx);
     return;
 end
-
-function applyAxisStyle(ax, commonTicks)
-xlim(ax,[0 85]);
-xticks(ax, commonTicks);
-axis(ax,'square');
-pbaspect(ax,[1 1 1]);
-end
-
-function absSlope = addLinFit(ax, tvals, yvals)
-absSlope = NaN;
-fin = isfinite(tvals) & isfinite(yvals);
-if nnz(fin) < 2, return; end
-t = tvals(fin); y = yvals(fin);
-out = isoutlier(y);
-mask = ~out;
-if nnz(mask) < 2, mask = fin; end
-t = t(mask); y = y(mask);
-p = polyfit(t, y, 1);
-absSlope = abs(p(1));
-tLine = linspace(min(t), max(t), 100);
-plot(ax, tLine, polyval(p, tLine), 'k--', 'LineWidth', 1);
-end
 [~, imax] = max(yVals);
 win = max(1, imax-2):min(numel(zVals), imax+2);
 zSeg = zVals(win);
@@ -455,4 +433,26 @@ catch
     zPeak = zVert;
     yPeak = yVert;
 end
+end
+
+function applyAxisStyle(ax, commonTicks)
+xlim(ax,[0 85]);
+xticks(ax, commonTicks);
+axis(ax,'square');
+pbaspect(ax,[1 1 1]);
+end
+
+function absSlope = addLinFit(ax, tvals, yvals)
+absSlope = NaN;
+fin = isfinite(tvals) & isfinite(yvals);
+if nnz(fin) < 2, return; end
+t = tvals(fin); y = yvals(fin);
+out = isoutlier(y);
+mask = ~out;
+if nnz(mask) < 2, mask = fin; end
+t = t(mask); y = y(mask);
+p = polyfit(t, y, 1);
+absSlope = abs(p(1));
+tLine = linspace(min(t), max(t), 100);
+plot(ax, tLine, polyval(p, tLine), 'k--', 'LineWidth', 1);
 end
