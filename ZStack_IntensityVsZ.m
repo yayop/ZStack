@@ -151,9 +151,12 @@ ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
-% Let x-limits follow the metadata range
-if isfinite(minZall) && isfinite(maxZall)
-    xlim(ax1,[minZall maxZall]);
+% Let x-limits follow the metadata range (all curves)
+allZ = cellfun(@(z) z(:), zStore, 'UniformOutput', false);
+allZcat = vertcat(allZ{:});
+allZcat = allZcat(isfinite(allZcat));
+if ~isempty(allZcat)
+    xlim(ax1,[min(allZcat) max(allZcat)]);
 end
 box(ax1,'on');
 colormap(ax1, baseCmap);
