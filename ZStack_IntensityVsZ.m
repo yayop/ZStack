@@ -19,14 +19,11 @@ if ~isstruct(roiData) || isempty(roiData)
 end
 %%
 nFrames = arrayfun(@(r) numel(r.frames), roiData);
-medianCount = median(nFrames);
-keepIdx = (nFrames == medianCount);
-roiData = roiData(keepIdx);
 nVids = numel(roiData);
-if nVids == 0
-    error('No videos matched the median frame count filter.');
-end
 [colors, cbLabel, relTimes, relSpan, baseCmap] = computeColors(roiData);
+if nVids == 0
+    error('No videos found after loading roiData.');
+end
 % Subsample curves to at most 14, approximately equispaced
 maxCurves = min(14, nVids);
 idxPlot = unique(round(linspace(1, nVids, maxCurves)));
