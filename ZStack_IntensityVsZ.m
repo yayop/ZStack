@@ -159,7 +159,7 @@ set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
 % Fixed x-limits and ticks after shifting by z*
-xlim(ax1,[-20 65]);
+xlim(ax1,[-20 60]);
 xticks(ax1,[-20 0 20 40 60]);
 box(ax1,'on');
 colormap(ax1, baseCmap);
@@ -179,58 +179,25 @@ tickVals = linspace(0, relSpan, 3);
 cb.Ticks = tickVals;
 cb.TickLabels = arrayfun(@(t)sprintf('%d', round(t)), tickVals, 'UniformOutput', false);
 
-% Second subplot: z-peak vs time
-ax2 = nexttile(2); hold(ax2,'on');
-validTZ = ~isnan(zMaxList) & ~isnan(minutes(tList));
-timeVals = minutes(tList(validTZ));
-scatter(ax2, timeVals, zMaxList(validTZ), 70, 'p', ...
-    'MarkerFaceColor','y', 'MarkerEdgeColor', [0 0 0], 'LineWidth', 0.5, ...
-    'MarkerFaceAlpha', 1);
-if numel(timeVals) >= 2
-    pfit = polyfit(timeVals, zMaxList(validTZ), 1);
-    tLine = linspace(min(timeVals), max(timeVals), 100);
-    zLine = polyval(pfit, tLine);
-    fitColor = [0.722, 0.373, 0];
-    plot(ax2, tLine, zLine, 'Color',fitColor, 'LineWidth', 4);
-    % annotate slope (velocity)
-    tspan = range(timeVals);
-    zspan = range(zMaxList(validTZ));
-    if tspan == 0, tspan = 1; end
-    if zspan == 0, zspan = 1; end
-    tText = min(timeVals) + 0.05*tspan;
-    zText = max(zMaxList(validTZ)) + 0.05*zspan;
-    title(ax2, sprintf('$|v| =$ %.2f ($\\mu$m/min)', abs(pfit(1))), ...
-        'Interpreter','latex','Color',fitColor,'FontSize',17);
-end
-xlabel(ax2,'$t$ (min)','Interpreter','latex','FontSize',17);
-ylabel(ax2,'$z^*$($\mu$m)','Interpreter','latex','FontSize',17);
-set(ax2,'FontSize',12);
-axis(ax2,'square');
-pbaspect(ax2,[1 1 1]);
-% Fixed time limits
-xlim(ax2,[0 85]);
-xticks(ax2,[0 20 40 60 80]);
-box(ax2,'on');
-
 validFit = ~isnan(fitA) & ~isnan(fitB) & ~isnan(fitMu) & ~isnan(fitSigma);
 tminsAll = minutes(tList);
 tmins = tminsAll(validFit);
 cFit = colors(validFit,:);
 xt = [0 20 40 60 80];
 
-axA = nexttile(3); hold(axA,'on');
+axA = nexttile(2); hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 xlim(axA,[0 80]); xticks(axA, xt); setAdaptiveY(axA, fitA(validFit));
 axis(axA,'square'); pbaspect(axA,[1 1 1]); set(axA,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
 
-axB = nexttile(4); hold(axB,'on');
+axB = nexttile(3); hold(axB,'on');
 scatter(axB, tmins, fitB(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 xlim(axB,[0 80]); xticks(axB, xt); setAdaptiveY(axB, fitB(validFit));
 axis(axB,'square'); pbaspect(axB,[1 1 1]); set(axB,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
 
-axMu = nexttile(5); hold(axMu,'on');
+axMu = nexttile(4); hold(axMu,'on');
 scatter(axMu, tmins, fitMu(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
@@ -238,18 +205,17 @@ axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 
 title(axMu, sprintf('$|v| = %.2f~(\\mu m/min)$', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
-axS = nexttile(6); hold(axS,'on');
+axS = nexttile(5); hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 30, cFit, 'filled','MarkerEdgeColor',[0 0 0]);
 xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, fitSigma(validFit));
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axS,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axS,'$\sigma$ ($\mu$m)','Interpreter','latex');
 set([axA axB axMu axS],'FontSize',12,'Box','on');
 
-hold(ax1,'off'); hold(ax2,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
+hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
 
-% Third figure: collapsed profiles (I-B)/A vs (z-mu)/sigma for all curves
-fig4 = figure('Name','Collapsed Gaussian-normalized profiles','Color','w');
-axN = axes(fig4); hold(axN,'on');
+% Sixth subplot: collapsed profiles (I-B)/A vs (z-mu)/sigma for all curves
+axN = nexttile(6); hold(axN,'on');
 for v = 1:nVids
     if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
     if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
