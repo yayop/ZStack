@@ -34,6 +34,7 @@ if ~isempty(relTimesPlot)
     relTimesPlot = relTimesPlot(idxPlot);
 end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
+set(fig,'Units','normalized','Position',[0 0 1 1]);
 tiledlayout(fig,1,6,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile(1); hold(ax1,'on');
 
@@ -214,20 +215,23 @@ set([axA axB axMu axS],'FontSize',12,'Box','on');
 
 hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
 
-% Sixth subplot: collapsed profiles (I-B)/A vs (z-mu)/sigma for all curves
+% Sixth subplot: collapsed profiles normalized by A*sigma*sqrt(2pi)
 axN = nexttile(6); hold(axN,'on');
+nGauss = linspace(-4,4,200);
+pdfGauss = (1/sqrt(2*pi))*exp(-0.5*nGauss.^2);
+plot(axN, nGauss, pdfGauss, 'b-', 'LineWidth', 1.2, 'DisplayName','Unit Gaussian');
 for v = 1:nVids
     if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
     if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
     zv = zStore{v}; yv = yStore{v};
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
-    ystd = (yv - fitB(v)) ./ fitA(v);
+    ystd = (yv - fitB(v)) ./ (fitA(v)*fitSigma(v)*sqrt(2*pi));
     scatter(axN, zstd, ystd, 12, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', [0 0 0], 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.4);
 end
 xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
-ylabel(axN,'$(I-B)/A$','Interpreter','latex','FontSize',14);
+ylabel(axN,'$(I-B)/(A\\sigma\\sqrt{2\\pi})$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
 
