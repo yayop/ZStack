@@ -279,7 +279,7 @@ if mins == maxs
 else
     tnorm = seconds(relTimes - mins) ./ seconds(maxs - mins);
 end
-baseCmap = winter(256);
+baseCmap = abyss(256);
 idx = 1 + round(tnorm*(size(baseCmap,1)-1));
 colors = baseCmap(idx,:);
 end
