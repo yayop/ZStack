@@ -34,7 +34,7 @@ if ~isempty(relTimesPlot)
     relTimesPlot = relTimesPlot(idxPlot);
 end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
-set(fig,'Units','normalized','Position',[0 0 1 1]);
+set(fig,'Units','normalized','Position',[0 0 1 0.6]);
 tiledlayout(fig,1,6,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile(1); hold(ax1,'on');
 
