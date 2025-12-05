@@ -50,11 +50,22 @@ fitMu = nan(nVids,1);
 fitSigma = nan(nVids,1);
 zStore = cell(nVids,1);
 yStore = cell(nVids,1);
+% reference z using the latest time (if available)
+if ~isempty(relTimes)
+    [~, refVid] = max(relTimes);
+    [refMean, refZvals] = computeMeanZ(roiData(refVid));
+    if ~isempty(refMean) && ~isempty(refZvals)
+        [refZ, ~] = gaussianPeak(refZvals, refMean);
+    end
+else
+    refZ = 0;
+end
 for v = 1:nVids
     vid = roiData(v);
     [meanVals, zVals] = computeMeanZ(vid);
     if isempty(meanVals), continue; end
-    % keep z values as reported (no shifting)
+    % shift by reference z*
+    zVals = zVals - refZ;
     % Ensure monotonic z for integration/peak finding
     [zVals, order] = sort(zVals);
     meanVals = meanVals(order);
@@ -151,13 +162,9 @@ ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
 axis(ax1,'square');
 pbaspect(ax1,[1 1 1]);
-% Let x-limits follow the metadata range (all curves)
-allZ = cellfun(@(z) z(:), zStore, 'UniformOutput', false);
-allZcat = vertcat(allZ{:});
-allZcat = allZcat(isfinite(allZcat));
-if ~isempty(allZcat)
-    xlim(ax1,[min(allZcat) max(allZcat)]);
-end
+% Fixed x-limits and ticks after shifting by z*
+xlim(ax1,[-20 65]);
+xticks(ax1,[-20 0 20 40 60]);
 box(ax1,'on');
 colormap(ax1, baseCmap);
 caxis(ax1,[0 relSpan]);
