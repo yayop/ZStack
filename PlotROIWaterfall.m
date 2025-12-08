@@ -31,13 +31,21 @@ frameIdx = unique([1, round(nF/2), nF]); % first, middle, last
 fig1 = figure('Name','Selected frames with ROI','Color','w');
 set(fig1,'Units','normalized','Position',[0 0 1 0.5]);
 tiledlayout(fig1,1,numel(frameIdx),'TileSpacing','compact','Padding','compact');
+% Compute global intensity bounds across selected frames
+allImgVals = [];
+for k = 1:numel(frameIdx)
+    img = vid.frames{frameIdx(k)};
+    if isempty(img), continue; end
+    allImgVals = [allImgVals; double(img(:))]; %#ok<AGROW>
+end
+imin = min(allImgVals); imax = max(allImgVals);
 for k = 1:numel(frameIdx)
     fi = frameIdx(k);
     img = vid.frames{fi};
     if isempty(img), continue; end
     mask = getRoiMask(vid, size(img));
     nexttile; hold on;
-    imshow(img, [], 'InitialMagnification','fit');
+    imshow(img, [imin imax], 'InitialMagnification','fit');
     title(sprintf('Frame %d', fi));
     B = bwboundaries(mask);
     for b = 1:numel(B)
