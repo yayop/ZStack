@@ -56,7 +56,6 @@ for k = 1:numel(frameIdx)
     title(ax2,'ROI intensity histogram');
     box(ax2,'on');
 end
-end
 
 % --- Helpers ------------------------------------------------------------
 function mask = getRoiMask(vid, sz)
