@@ -44,10 +44,13 @@ for k = 1:numel(frameIdx)
     colormap(ax1, gray);
     axis(ax1,'image'); axis(ax1,'off');
     title(ax1, sprintf('Frame %d', fi));
+    % ROI boundary
     B = bwboundaries(mask);
     for b = 1:numel(B)
         plot(ax1, B{b}(:,2), B{b}(:,1), 'r-', 'LineWidth', 1);
     end
+    % ROI label
+    text(ax1, 5, 15, 'ROI', 'Color','r','FontSize',12,'FontWeight','bold');
 
     ax2 = nexttile((k-1)*2+2); hold(ax2,'on');
     histogram(ax2, roiPixels, nBins, 'EdgeColor','none','FaceColor',[0.2 0.6 0.9]);
