@@ -35,8 +35,8 @@ if ~isempty(relTimesPlot)
 end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 set(fig,'Units','normalized','Position',[0 0 1 0.6]);
-tiledlayout(fig,1,6,'TileSpacing','compact','Padding','compact');
-ax1 = nexttile(1); hold(ax1,'on');
+tiledlayout(fig,3,4,'TileSpacing','compact','Padding','compact');
+ax1 = nexttile(1,[2 2]); hold(ax1,'on');
 
 % Reference z0 from latest curve (gaussian peak if possible)
 refZ = 0;
@@ -154,14 +154,6 @@ for v = 1:nVids
     end
 end
 
-% Minimal legend: one marker (data) and one line (fit)
-demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',[0 0 0], ...
-    'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
-demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
-lgd = legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off','FontWeight','bold');
-lgd.TextColor = [0 0 0];
-lgd.EdgeColor = [0 0 0];
-
 xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
@@ -194,19 +186,19 @@ tmins = tminsAll(validFit);
 cFit = colors(validFit,:);
 xt = [0 20 40 60 80];
 
-axA = nexttile(2); hold(axA,'on');
+axA = nexttile(9); hold(axA,'on');
 scatter(axA, tmins, fitA(validFit), 50, cFit, 'filled','MarkerEdgeColor','none');
 xlim(axA,[0 80]); xticks(axA, xt); setAdaptiveY(axA, fitA(validFit));
 axis(axA,'square'); pbaspect(axA,[1 1 1]); set(axA,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axA,'$t$ (min)','Interpreter','latex'); ylabel(axA,'$A$','Interpreter','latex');
 
-axB = nexttile(3); hold(axB,'on');
+axB = nexttile(10); hold(axB,'on');
 scatter(axB, tmins, fitB(validFit), 50, cFit, 'filled','MarkerEdgeColor','none');
 xlim(axB,[0 80]); xticks(axB, xt); setAdaptiveY(axB, fitB(validFit));
 axis(axB,'square'); pbaspect(axB,[1 1 1]); set(axB,'PlotBoxAspectRatio',[1 1 1]);
 xlabel(axB,'$t$ (min)','Interpreter','latex'); ylabel(axB,'$B$','Interpreter','latex');
 
-axMu = nexttile(4); hold(axMu,'on');
+axMu = nexttile(11); hold(axMu,'on');
 scatter(axMu, tmins, fitMu(validFit), 50, cFit, 'filled','MarkerEdgeColor','none');
 [absSlopeMu, yLineMu] = addLinFit(axMu, tmins, fitMu(validFit));
 xlim(axMu,[0 80]); xticks(axMu, xt); setAdaptiveY(axMu, [fitMu(validFit); yLineMu(:)]);
@@ -214,7 +206,7 @@ axis(axMu,'square'); pbaspect(axMu,[1 1 1]); set(axMu,'PlotBoxAspectRatio',[1 1 
 title(axMu, sprintf('$|v| = %.2f~(\\mu$m/min)', absSlopeMu),'Interpreter','latex','Color',[0 0 0],'FontSize',14);
 xlabel(axMu,'$t$ (min)','Interpreter','latex','FontSize',12); ylabel(axMu,'$\mu$ ($\mu$m)','Interpreter','latex');
 
-axS = nexttile(5); hold(axS,'on');
+axS = nexttile(12); hold(axS,'on');
 scatter(axS, tmins, fitSigma(validFit), 50, cFit, 'filled','MarkerEdgeColor','none');
 xlim(axS,[0 80]); xticks(axS, xt); setAdaptiveY(axS, fitSigma(validFit));
 axis(axS,'square'); pbaspect(axS,[1 1 1]); set(axS,'PlotBoxAspectRatio',[1 1 1]);
@@ -224,7 +216,7 @@ set([axA axB axMu axS],'FontSize',12,'Box','on');
 hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
 
 % Sixth subplot: collapsed profiles normalized to PDF form
-axN = nexttile(6); hold(axN,'on');
+axN = nexttile(3,[2 2]); hold(axN,'on');
 nGauss = linspace(-4,4,200);
 % Model overlay: B + A*exp(-(z-mu)^2/(4 sigma^2)) => PDF in x=(z-mu)/sigma is (1/(2*sqrt(pi))) * exp(-0.25 x^2)
 for v = 1:nVids
@@ -234,12 +226,12 @@ for v = 1:nVids
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
     ystd = (yv - fitB(v)) ./ fitA(v) ./ (2*sqrt(pi));
-    scatter(axN, zstd, ystd, 30, 'MarkerFaceColor', colors(v,:), ...
+    scatter(axN, zstd, ystd, 15, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.1);
 end
-plot(axN, nGauss, exp(-0.25*nGauss.^2)./(2*sqrt(pi)), 'k--', 'LineWidth', 1.5, 'DisplayName','Gaussian overlay');
-xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
-ylabel(axN,'$(I-B)/(A\\,2\\sqrt{\\pi})$','Interpreter','latex','FontSize',14);
+plot(axN, nGauss, exp(-0.25*nGauss.^2)./(2*sqrt(pi)), 'k--', 'LineWidth', 2.5, 'DisplayName','Gaussian overlay');
+xlabel(axN,'$(z-\mu)/\sigma$','Interpreter','latex','FontSize',14);
+ylabel(axN,'$(I-B)/(\sqrt{4A^2\pi})$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
 set(axN,'YScale','log');
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
