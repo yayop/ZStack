@@ -2,8 +2,8 @@
 % Edit matFile and vidIndex as needed.
 
 matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
-vidIndex = 1; % change if you want another video
-nBins = 100;
+vidIndex = 140; % change if you want another video
+nBins = 30;
 
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');

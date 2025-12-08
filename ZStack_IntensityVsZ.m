@@ -37,6 +37,7 @@ fig = figure('Name','Mean ROI intensity vs Z','Color','w');
 set(fig,'Units','normalized','Position',[0 0 1 0.6]);
 tiledlayout(fig,3,4,'TileSpacing','compact','Padding','compact');
 ax1 = nexttile(1,[2 2]); hold(ax1,'on');
+ax2 = nexttile(3,[2 2]); hold(ax2,'on');
 
 % Reference z0 from latest curve (gaussian peak if possible)
 refZ = 0;
@@ -154,6 +155,14 @@ for v = 1:nVids
     end
 end
 
+% Minimal legend: one marker (data) and one line (fit)
+demoScatter = scatter(ax1, -inf, -inf, 30, 'MarkerFaceColor',[0 0 0], ...
+    'MarkerEdgeColor', [0 0 0], 'DisplayName','Data','Visible','off');
+demoLine = plot(ax1, [-inf -inf], [-inf -inf], 'k--', 'LineWidth', 2, 'DisplayName','Fit','Visible','off');
+lgd = legend(ax1,[demoScatter,demoLine],{'Data','Fit'},'Location','northwest','Box','on','AutoUpdate','off','FontWeight','bold');
+lgd.TextColor = [0 0 0];
+lgd.EdgeColor = [0 0 0];
+
 xlabel(ax1,'$z$ ($\mu$m)','Interpreter','latex','FontSize',17);
 ylabel(ax1,'$\langle I \rangle$','Interpreter','latex','FontSize',17);
 set(ax1,'FontSize',12);
@@ -215,12 +224,9 @@ set([axA axB axMu axS],'FontSize',12,'Box','on');
 
 hold(ax1,'off'); hold(axA,'off'); hold(axB,'off'); hold(axMu,'off'); hold(axS,'off');
 
-% Sixth subplot: collapsed profiles normalized to PDF form
-axN = nexttile(3,[2 2]); hold(axN,'on');
-nGauss = linspace(-4,4,200);
+% Second big subplot: collapsed profiles normalized to PDF form
 nGauss = linspace(-4,4,200);
 % Model overlay: B + A*exp(-(z-mu)^2/(4 sigma^2)) => PDF in x=(z-mu)/sigma is (1/(2*sqrt(pi))) * exp(-0.25 x^2)
-allZstd = [];
 for v = 1:nVids
     if isnan(fitA(v)) || isnan(fitB(v)) || isnan(fitMu(v)) || isnan(fitSigma(v)), continue; end
     if fitA(v) == 0 || fitSigma(v) <= 0, continue; end
@@ -228,25 +234,15 @@ for v = 1:nVids
     if isempty(zv) || isempty(yv), continue; end
     zstd = (zv - fitMu(v)) ./ fitSigma(v);
     ystd = (yv - fitB(v)) ./ fitA(v) ./ (2*sqrt(pi));
-    allZstd = [allZstd; zstd(:)];
-    scatter(axN, zstd, ystd, 15, 'MarkerFaceColor', colors(v,:), ...
+    scatter(ax2, zstd, ystd, 30, 'MarkerFaceColor', colors(v,:), ...
         'MarkerEdgeColor', 'none', 'MarkerFaceAlpha', 0.6, 'LineWidth', 0.1);
 end
-if ~isempty(allZstd)
-    gmin = min(allZstd); gmax = max(allZstd);
-    gpad = max(1, 0.1*(gmax - gmin));
-    nGauss = linspace(gmin - gpad, gmax + gpad, 200);
-end
-plot(axN, nGauss, exp(-0.25*nGauss.^2)./(2*sqrt(pi)), 'k--', 'LineWidth', 2.5, 'DisplayName','Gaussian overlay');
-xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
-ylabel(axN,'$(I-B)/(\\sqrt{4A^2\\pi})$','Interpreter','latex','FontSize',14);
-set(axN,'FontSize',12);
-set(axN,'YScale','log');
-allZstd = allZstd(isfinite(allZstd));
-if ~isempty(allZstd)
-    xlim(axN,[min(allZstd), max(allZstd)]);
-end
-axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
+plot(ax2, nGauss, exp(-0.25*nGauss.^2)./(2*sqrt(pi)), 'k--', 'LineWidth', 1.5, 'DisplayName','Gaussian overlay');
+xlabel(ax2,'$(z-\mu)/\sigma$','Interpreter','latex','FontSize',14);
+ylabel(ax2,'$(I-B)/(A\,2\sqrt{\pi})$','Interpreter','latex','FontSize',14);
+set(ax2,'FontSize',12);
+set(ax2,'YScale','log');
+axis(ax2,'square'); pbaspect(ax2,[1 1 1]); box(ax2,'on');
 
 % --- Helpers ------------------------------------------------------------
 function name = safeName(vid)
