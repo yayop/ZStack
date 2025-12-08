@@ -28,18 +28,6 @@ end
 nF = numel(vid.frames);
 frameIdx = unique([1, round(nF/2), nF]); % first, middle, last
 
-for k = 1:numel(frameIdx)
-    fi = frameIdx(k);
-    img = vid.frames{fi};
-    if isempty(img)
-        warning('Frame %d is empty, skipping.', fi);
-        continue;
-    end
-    mask = getRoiMask(vid, size(img));
-    roiPixels = double(img(mask));
-
-end
-
 % Plot all three frames in a single aligned figure
 fig = figure('Name','ROI frames + histograms','Color','w');
 set(fig,'Units','normalized','Position',[0 0 1 1]); % fullscreen
