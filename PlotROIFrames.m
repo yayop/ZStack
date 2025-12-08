@@ -38,28 +38,36 @@ for k = 1:numel(frameIdx)
     mask = getRoiMask(vid, size(img));
     roiPixels = double(img(mask));
 
-    fig = figure('Name',sprintf('Frame %d', fi),'Color','w');
-    tiledlayout(fig,1,2,'TileSpacing','compact','Padding','compact');
+end
 
-    % Left: image with ROI overlay
-    ax1 = nexttile; hold(ax1,'on');
+% Plot all three frames in a single aligned figure
+fig = figure('Name','ROI frames + histograms','Color','w');
+set(fig,'Units','normalized','Position',[0 0 1 1]); % fullscreen
+tiledlayout(fig,numel(frameIdx),2,'TileSpacing','compact','Padding','compact');
+for k = 1:numel(frameIdx)
+    fi = frameIdx(k);
+    img = vid.frames{fi};
+    if isempty(img), continue; end
+    mask = getRoiMask(vid, size(img));
+    roiPixels = double(img(mask));
+
+    ax1 = nexttile((k-1)*2+1); hold(ax1,'on');
     imagesc(ax1, img);
     colormap(ax1, gray);
     axis(ax1,'image'); axis(ax1,'off');
     title(ax1, sprintf('Frame %d', fi));
-    % ROI boundary
     B = bwboundaries(mask);
     for b = 1:numel(B)
         plot(ax1, B{b}(:,2), B{b}(:,1), 'r-', 'LineWidth', 1);
     end
 
-    % Right: histogram of ROI intensities
-    ax2 = nexttile; hold(ax2,'on');
+    ax2 = nexttile((k-1)*2+2); hold(ax2,'on');
     histogram(ax2, roiPixels, nBins, 'EdgeColor','none','FaceColor',[0.2 0.6 0.9]);
     xlabel(ax2,'Intensity (a.u.)');
     ylabel(ax2,'Count');
     title(ax2,'ROI intensity histogram');
     box(ax2,'on');
+end
 end
 
 % --- Helpers ------------------------------------------------------------
