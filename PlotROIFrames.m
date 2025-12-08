@@ -63,14 +63,18 @@ for k = 1:numel(frameIdx)
     box(ax2,'on');
 end
 
-% unify histogram axes
-if ~isempty(allPix)
-    allPixCat = cell2mat(allPix(:));
-    xmin = min(allPixCat); xmax = max(allPixCat);
-    histAxes = findobj(fig,'Type','axes','-not','Tag','legend');
-    histAxes = histAxes(arrayfun(@(h) any(h.XLabel.String=="Intensity (a.u.)"), histAxes));
-    for h = histAxes'
-        xlim(h,[xmin xmax]);
+% unify histogram axes: fixed x-range and common y-range
+histObjs = findobj(fig,'Type','histogram');
+if ~isempty(histObjs)
+    % set fixed x-limits
+    histAxes = unique(arrayfun(@(h) ancestor(h,'axes'), histObjs));
+    for hAx = histAxes
+        xlim(hAx,[0 1000]);
+    end
+    % common y-limit based on max count
+    maxCount = max(arrayfun(@(h) max(h.Values), histObjs));
+    for hAx = histAxes
+        ylim(hAx,[0 maxCount]);
     end
 end
 
