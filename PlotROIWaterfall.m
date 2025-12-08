@@ -56,9 +56,18 @@ end
 %% Plot ROI histograms as 3D lines across slices
 edges = linspace(0, double(max(cellfun(@(f) max(f(:)), vid.frames))), nBins+1);
 binCenters = (edges(1:end-1)+edges(2:end))/2;
-H = nan(nBins, nF);
-for k = 1:nF
-    img = vid.frames{k};
+H = nan(nBins, nSel);
+% z positions for selected slices
+if isfield(vid,'zPos') && numel(vid.zPos) >= nF
+    zValsAll = vid.zPos(:);
+else
+    zValsAll = (1:nF).';
+end
+zSel = zValsAll(frameIdx);
+zRef = zSel(end); % set zero at last selected slice
+for k = 1:nSel
+    idx = frameIdx(k);
+    img = vid.frames{idx};
     if isempty(img), continue; end
     mask = getRoiMask(vid, size(img));
     roiPixels = double(img(mask));
@@ -69,12 +78,12 @@ fig2 = figure('Name','ROI histograms 3D','Color','w');
 set(fig2,'Units','normalized','Position',[0 0 1 0.7]);
 axw = axes(fig2); hold(axw,'on');
 baseCmap = autumn(256); % match main script
-cols = baseCmap(round(linspace(1,size(baseCmap,1), nF)),:);
-for k = 1:nF
-    plot3(axw, k*ones(size(binCenters)), binCenters, H(:,k), 'LineWidth', 2, 'Color', cols(k,:));
+cols = baseCmap(round(linspace(1,size(baseCmap,1), nSel)),:);
+for k = 1:nSel
+    plot3(axw, (zSel(k)-zRef)*ones(size(binCenters)), binCenters, H(:,k), 'LineWidth', 2, 'Color', cols(k,:));
 end
 view(axw, 45, 30);
-xlabel(axw,'Slice index');
+xlabel(axw,'$z$ shifted (\\mu m)','Interpreter','latex');
 ylabel(axw,'Intensity (a.u.)');
 zlabel(axw,'Count');
 box(axw,'on'); grid(axw,'on');
