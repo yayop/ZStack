@@ -42,11 +42,12 @@ for k = 1:numel(frameIdx)
     allPix{end+1} = roiPixels; %#ok<AGROW>
 
     ax1 = nexttile((k-1)*2+1); hold(ax1,'on');
-    imagesc(ax1, img);
+    imagesc(ax1, img, 'CDataMapping','scaled');
     colormap(ax1, gray);
+    caxis(ax1, [min(img(:)) max(img(:))]); % no contrast stretch
     axis(ax1,'image'); axis(ax1,'off');
-    title(ax1, sprintf('Frame %d', fi));
-    % ROI boundary
+    title(ax1, sprintf('Frame %d (full)', fi));
+    % ROI boundary on full frame
     B = bwboundaries(mask);
     for b = 1:numel(B)
         plot(ax1, B{b}(:,2), B{b}(:,1), 'r-', 'LineWidth', 1);
