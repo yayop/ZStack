@@ -2,7 +2,7 @@
 % Edit matFile and vidIndex as needed.
 
 matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
-vidIndex = 100; % change to select a different video
+vidIndex = 140; % change to select a different video
 nBins = 50;
 
 if ~exist(matFile,'file')
@@ -68,7 +68,8 @@ end
 fig2 = figure('Name','ROI histograms 3D','Color','w');
 set(fig2,'Units','normalized','Position',[0 0 1 0.7]);
 axw = axes(fig2); hold(axw,'on');
-cols = lines(nF);
+baseCmap = autumn(256); % match main script
+cols = baseCmap(round(linspace(1,size(baseCmap,1), nF)),:);
 for k = 1:nF
     plot3(axw, k*ones(size(binCenters)), binCenters, H(:,k), 'LineWidth', 2, 'Color', cols(k,:));
 end
