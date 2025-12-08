@@ -34,8 +34,8 @@ if ~isempty(relTimesPlot)
     relTimesPlot = relTimesPlot(idxPlot);
 end
 fig = figure('Name','Mean ROI intensity vs Z','Color','w');
-set(fig,'Units','normalized','Position',[0 0 1 0.6]);
-tiledlayout(fig,3,4,'TileSpacing','compact','Padding','compact');
+set(fig,'Units','normalized','Position',[0 0 1 1]); % fullscreen for aligned borders
+tiledlayout(fig,3,4,'TileSpacing','none','Padding','compact');
 ax1 = nexttile(1,[2 2]); hold(ax1,'on');
 
 % Reference z0 from latest curve (gaussian peak if possible)
