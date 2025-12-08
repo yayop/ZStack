@@ -241,6 +241,7 @@ plot(axN, nGauss, exp(-0.25*nGauss.^2)./(2*sqrt(pi)), 'k--', 'LineWidth', 1.5, '
 xlabel(axN,'$(z-\\mu)/\\sigma$','Interpreter','latex','FontSize',14);
 ylabel(axN,'$(I-B)/(A\\,2\\sqrt{\\pi})$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
+set(axN,'YScale','log');
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
 
 % --- Helpers ------------------------------------------------------------
