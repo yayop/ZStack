@@ -1,8 +1,8 @@
 % Script: plot ROI frames (imshow) and a 3D waterfall of ROI histograms across slices.
 % Edit matFile and vidIndex as needed.
 
-matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
-vidIndex = 70; % change to select a different video
+matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
+vidIndex = 100; % change to select a different video
 nBins = 50;
 
 if ~exist(matFile,'file')
@@ -53,7 +53,7 @@ for k = 1:numel(frameIdx)
     end
 end
 
-%% Build waterfall of ROI histograms across slices
+%% Plot ROI histograms as 3D lines across slices
 edges = linspace(0, double(max(cellfun(@(f) max(f(:)), vid.frames))), nBins+1);
 binCenters = (edges(1:end-1)+edges(2:end))/2;
 H = nan(nBins, nF);
@@ -65,17 +65,18 @@ for k = 1:nF
     H(:,k) = histcounts(roiPixels, edges);
 end
 
-fig2 = figure('Name','ROI histogram waterfall','Color','w');
+fig2 = figure('Name','ROI histograms 3D','Color','w');
 set(fig2,'Units','normalized','Position',[0 0 1 0.7]);
-% Use bar3-like surface
-[Y,Z] = meshgrid(1:nF, binCenters);
-surf(Y, Z, H, 'EdgeColor','interp', 'FaceColor','none');
-view(45,30);
-xlabel('Slice index');
-ylabel('Intensity (a.u.)');
-zlabel('Count');
-colormap(parula);
-box on; grid on;
+axw = axes(fig2); hold(axw,'on');
+cols = lines(nF);
+for k = 1:nF
+    plot3(axw, k*ones(size(binCenters)), binCenters, H(:,k), 'LineWidth', 2, 'Color', cols(k,:));
+end
+view(axw, 45, 30);
+xlabel(axw,'Slice index');
+ylabel(axw,'Intensity (a.u.)');
+zlabel(axw,'Count');
+box(axw,'on'); grid(axw,'on');
 
 % --- Helpers ------------------------------------------------------------
 function mask = getRoiMask(vid, sz)
