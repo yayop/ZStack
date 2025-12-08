@@ -234,6 +234,12 @@ xlabel(axN,'$(z-\mu)/\sigma$','Interpreter','latex','FontSize',14);
 ylabel(axN,'$(I-B)/(\sqrt{4A^2\pi})$','Interpreter','latex','FontSize',14);
 set(axN,'FontSize',12);
 set(axN,'YScale','log');
+allZstd = cellfun(@(z,mu,sig) (z - mu)./sig, zStore, num2cell(fitMu), num2cell(fitSigma), 'UniformOutput', false);
+allZstd = vertcat(allZstd{:});
+allZstd = allZstd(isfinite(allZstd));
+if ~isempty(allZstd)
+    xlim(axN,[min(allZstd), max(allZstd)]);
+end
 axis(axN,'square'); pbaspect(axN,[1 1 1]); box(axN,'on');
 
 % --- Helpers ------------------------------------------------------------
