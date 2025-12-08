@@ -1,9 +1,9 @@
 % Script: plot three representative frames (first, middle, last) with ROI overlay and ROI intensity histogram.
 % Edit matFile and vidIndex as needed.
 
-matFile = "\\actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251129_3DFORMATION_ACTIVENEMATICS\noATP\all_videos_roi.mat";
+matFile = "\\Actnem\all_protocols_and_methods\XA_Reports_DataAnalysis_Literature\1_RAW_VIDEOS\CONFOCAL\3D_FORMATION_ACTIVE_NEMATICS\20251121_3DACTIVENEMATICS_with_without_ATP\20251121_3DACTIVENEMATICS_ATP\all_videos_roi.mat";
 vidIndex = 1; % change if you want another video
-nBins = 50;
+nBins = 100;
 
 if ~exist(matFile,'file')
     [f,p] = uigetfile('*.mat','Select all_videos_roi.mat');
@@ -32,12 +32,14 @@ frameIdx = unique([1, round(nF/2), nF]); % first, middle, last
 fig = figure('Name','ROI frames + histograms','Color','w');
 set(fig,'Units','normalized','Position',[0 0 1 1]); % fullscreen
 tiledlayout(fig,numel(frameIdx),2,'TileSpacing','compact','Padding','compact');
+allPix = {}; % collect ROI pixels to unify histogram axes
 for k = 1:numel(frameIdx)
     fi = frameIdx(k);
     img = vid.frames{fi};
     if isempty(img), continue; end
     mask = getRoiMask(vid, size(img));
     roiPixels = double(img(mask));
+    allPix{end+1} = roiPixels; %#ok<AGROW>
 
     ax1 = nexttile((k-1)*2+1); hold(ax1,'on');
     imagesc(ax1, img);
@@ -58,6 +60,17 @@ for k = 1:numel(frameIdx)
     ylabel(ax2,'Count');
     title(ax2,'ROI intensity histogram');
     box(ax2,'on');
+end
+
+% unify histogram axes
+if ~isempty(allPix)
+    allPixCat = cell2mat(allPix(:));
+    xmin = min(allPixCat); xmax = max(allPixCat);
+    histAxes = findobj(fig,'Type','axes','-not','Tag','legend');
+    histAxes = histAxes(arrayfun(@(h) any(h.XLabel.String=="Intensity (a.u.)"), histAxes));
+    for h = histAxes'
+        xlim(h,[xmin xmax]);
+    end
 end
 
 % --- Helpers ------------------------------------------------------------
