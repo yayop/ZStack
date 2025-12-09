@@ -1,3 +1,4 @@
+%% 
 % Script: plot ROI frames (imshow) and a 3D waterfall of ROI histograms across slices.
 % Edit matFile and vidIndex as needed.
 
@@ -81,7 +82,7 @@ for k = 1:nF
     if isempty(imgk), continue; end
     maskk = getRoiMask(vid, size(imgk));
     roiVec = double(imgk(maskk));
-    roiMed(k) = median(roiVec);
+roiMed(k) = median(roiVec);
 end
 tmp = roiMed;
 tmp(~isfinite(tmp)) = -inf;
@@ -89,7 +90,6 @@ tmp(~isfinite(tmp)) = -inf;
 if all(~isfinite(tmp))
     idxMaxMed = 1;
 end
-zRef = parabolicPeak(zValsAll, roiMed, idxMaxMed);
 zSel = zValsAll(histIdx);
 for k = 1:nHist
     idx = histIdx(k);
@@ -108,6 +108,17 @@ for k = 1:nHist
     sigmaInt(k) = std(roiPixels);
     medInt(k) = median(roiPixels);
     [meanHist(k), sigmaHist(k)] = weightedStats(binCenters, H(:,k));
+end
+% reference z*: where I(z) is maximum (parabolic peak around the max)
+zRef = zValsAll(end);
+finMean = isfinite(zSel) & isfinite(meanInt);
+if nnz(finMean) >= 3
+    [~, idxMax] = max(meanInt(finMean));
+    zRef = parabolicPeak(zSel(finMean), meanInt(finMean), idxMax);
+elseif nnz(finMean) >= 1
+    idxList = find(finMean);
+    [~, idxMax] = max(meanInt(finMean));
+    zRef = zSel(idxList(idxMax));
 end
 
 fig2 = figure('Name','ROI histograms 3D','Color','w');
@@ -144,12 +155,13 @@ for k = 1:nHist
         'MarkerFaceColor', cols(k,:), 'MarkerEdgeColor', 'k', 'MarkerSize', 10, 'LineWidth', 0.8);
 end
 view(axw, 45, 30);
-xlabel(axw,'$z$ ($\\mu$ m)','Interpreter','latex');
+set(axw,'XDir','normal'); % standard z-shift axis
+xlabel(axw,'$z$ ($\mu$m)','Interpreter','latex');
 ylabel(axw,'Pixel Intensity','Interpreter','latex');
 zlabel(axw,'PDF','Interpreter','latex');
 ylim(axw,[edges(1) edges(end)]);
 box(axw,'on'); grid(axw,'off');
-pbaspect(axw,[1 1 1]); % equalized box aspect for the combined view
+pbaspect(axw,[10 3 1]); % equalized box aspect for the combined view
 
 %% Optional: per-slice figure (histogram + fits)
 if makePerCurveFigures
@@ -159,16 +171,11 @@ if makePerCurveFigures
         axk = axes(figk); hold(axk,'on');
         stairs(axk, binCenters, H(:,k), 'Color', cols(k,:), 'LineWidth', 1.5);
         area(axk, binCenters, H(:,k), 'FaceColor', cols(k,:), 'FaceAlpha',0.15, 'EdgeColor','none');
-        if ~isnan(poiLambdaFit(k)) && poiLambdaFit(k)>0
-            plot(axk, binCenters, poissonPDFVals(binCenters, poiLambdaFit(k), poiAfit(k)), 'k--','LineWidth',1.5);
-        end
         [~, yMedBin] = min(abs(binCenters - medInt(k)));
         scatter(axk, binCenters(yMedBin), H(yMedBin,k), 60, cols(k,:), 'filled','MarkerEdgeColor','k','LineWidth',0.8);
         xlabel(axk,'Pixel Intensity');
-        ylabel(axk,'Count');
-        title(axk,sprintf('Slice %d, z=%.2f (\\mu m) | \\lambda=%.2f, A=%.1f', ...
-            histIdx(k), zSel(k)-zRef, poiLambdaFit(k), poiAfit(k)));
-        xlim(axk,[0 5000]);
+        ylabel(axk,'PDF');
+        xlim(axk,[0 1200]);
         % semilogy scaling for individual plots (log only on Y)
         set(axk,'YScale','log');
         yPos = H(:,k);
@@ -183,6 +190,24 @@ if makePerCurveFigures
         box(axk,'on');
     end
 end
+
+% Overlay of all histograms (PDF)
+fig3 = figure('Name','Overlay ROI histograms (PDF)','Color','w');
+set(fig3,'Units','normalized','Position',[0 0 1 0.5]);
+axOver = axes(fig3); hold(axOver,'on');
+for k = 1:nHist
+    plot(axOver, binCenters, H(:,k), 'Color', cols(k,:), 'LineWidth', 1.2);
+end
+set(axOver,'YScale','log');
+xlabel(axOver,'Pixel Intensity');
+ylabel(axOver,'PDF');
+xlim(axOver,[0 1200]);
+allPos = H(H>0);
+if ~isempty(allPos)
+    ylim(axOver,[min(allPos)*0.5, max(allPos)*1.5]);
+end
+set(axOver,'FontSize',11);
+box(axOver,'on');
 
 % --- Helpers ------------------------------------------------------------
 function mask = getRoiMask(vid, sz)
