@@ -28,54 +28,71 @@ end
 nF = numel(vid.frames);
 frameIdx = unique([1, round(nF/2), nF]); % first, middle, last
 
-% Plot all three frames in a single aligned figure
-fig = figure('Name','ROI frames + histograms','Color','w');
-set(fig,'Units','normalized','Position',[0 0 1 1]); % fullscreen
-tiledlayout(fig,numel(frameIdx),2,'TileSpacing','compact','Padding','compact');
-allPix = {}; % collect ROI pixels to unify histogram axes
+% z positions
+if isfield(vid,'zPos') && numel(vid.zPos) >= nF
+    zValsAll = vid.zPos(:);
+else
+    zValsAll = (1:nF).';
+end
+zSel = zValsAll;
+
+% Compute z* as peak of mean ROI intensity
+meanIntAll = nan(nF,1);
+for k = 1:nF
+    imgk = vid.frames{k};
+    if isempty(imgk), continue; end
+    maskk = getRoiMask(vid, size(imgk));
+    meanIntAll(k) = mean(double(imgk(maskk)));
+end
+zRef = zSel(end);
+finMean = isfinite(zSel) & isfinite(meanIntAll);
+if nnz(finMean) >= 3
+    [~, idxMax] = max(meanIntAll(finMean));
+    zRef = parabolicPeak(zSel(finMean), meanIntAll(finMean), idxMax);
+elseif nnz(finMean) >= 1
+    idxList = find(finMean);
+    [~, idxMax] = max(meanIntAll(finMean));
+    zRef = zSel(idxList(idxMax));
+end
+
+% Output directory: same folder as this script (repo)
+scriptDir = fileparts(mfilename('fullpath'));
+outDir = scriptDir;
+if ~exist(outDir,'dir')
+    mkdir(outDir);
+end
+
+% Compute global min/max over selected frames for consistent scaling
+imgMin = inf; imgMax = -inf;
+for k = 1:numel(frameIdx)
+    fi = frameIdx(k);
+    img = vid.frames{fi};
+    if isempty(img), continue; end
+    imgMin = min(imgMin, double(min(img(:))));
+    imgMax = max(imgMax, double(max(img(:))));
+end
+imgRange = imgMax - imgMin;
+if imgRange <= 0
+    imgRange = 1;
+end
+
 for k = 1:numel(frameIdx)
     fi = frameIdx(k);
     img = vid.frames{fi};
     if isempty(img), continue; end
     mask = getRoiMask(vid, size(img));
-    roiPixels = double(img(mask));
-    allPix{end+1} = roiPixels; %#ok<AGROW>
+    
+    % ROI boundary on full frame (no overlay in export)
+    % use fixed scaling based on global min/max from selected frames and boost brightness slightly
+    scaleImg = (double(img) - imgMin) / max(imgRange, eps);
+    scaleImg = min(max(scaleImg + 0.05, 0), 1); % small brightness boost
+    imgUint = im2uint8(scaleImg);
+    rgb = repmat(imgUint, [1 1 3]);
 
-    ax1 = nexttile((k-1)*2+1); hold(ax1,'on');
-    imagesc(ax1, img, 'CDataMapping','scaled');
-    colormap(ax1, gray);
-    caxis(ax1, [min(img(:)) max(img(:))]); % no contrast stretch
-    axis(ax1,'image'); axis(ax1,'off');
-    title(ax1, sprintf('Frame %d (full)', fi));
-    % ROI boundary on full frame
-    B = bwboundaries(mask);
-    for b = 1:numel(B)
-        plot(ax1, B{b}(:,2), B{b}(:,1), 'r-', 'LineWidth', 1);
-    end
-    % ROI label
-    text(ax1, 5, 15, 'ROI', 'Color','r','FontSize',12,'FontWeight','bold');
-
-    ax2 = nexttile((k-1)*2+2); hold(ax2,'on');
-    histogram(ax2, roiPixels, nBins, 'EdgeColor','none','FaceColor',[0.2 0.6 0.9]);
-    xlabel(ax2,'Intensity (a.u.)');
-    ylabel(ax2,'Count');
-    title(ax2,'ROI intensity histogram');
-    box(ax2,'on');
-end
-
-% unify histogram axes: fixed x-range and common y-range
-histObjs = findobj(fig,'Type','histogram');
-if ~isempty(histObjs)
-    % set fixed x-limits
-    histAxes = unique(arrayfun(@(h) ancestor(h,'axes'), histObjs));
-    for hAx = histAxes
-        xlim(hAx,[0 1000]);
-    end
-    % common y-limit based on max count
-    maxCount = max(arrayfun(@(h) max(h.Values), histObjs));
-    for hAx = histAxes
-        ylim(hAx,[0 maxCount]);
-    end
+    % Save frame with ROI overlay as tif, name includes z shifted by z*
+    zShift = zSel(fi) - zRef;
+    outName = fullfile(outDir, sprintf('frame_%03d_z_%0.2f.tif', fi, zShift));
+    imwrite(rgb, outName);
 end
 
 % --- Helpers ------------------------------------------------------------
@@ -95,4 +112,25 @@ if isfield(vid,'roiPoly') && ~isempty(vid.roiPoly)
 end
 % default: full frame
 mask = true(sz(1), sz(2));
+end
+
+function zPeak = parabolicPeak(zVals, yVals, idxMax)
+% Subpixel peak from max point and its neighbors using a parabola fit.
+if nargin < 3 || isempty(idxMax)
+    [~, idxMax] = max(yVals);
+end
+zPeak = zVals(idxMax);
+if idxMax <= 1 || idxMax >= numel(zVals)
+    return;
+end
+z0 = zVals(idxMax-1); z1 = zVals(idxMax); z2 = zVals(idxMax+1);
+y0 = yVals(idxMax-1); y1 = yVals(idxMax); y2 = yVals(idxMax+1);
+if ~all(isfinite([y0 y1 y2]))
+    return;
+end
+den = (y0 - 2*y1 + y2);
+if den == 0
+    return;
+end
+zPeak = z1 + 0.5*((y0 - y2)/den)*(z2 - z0)/2;
 end
