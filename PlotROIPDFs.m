@@ -27,6 +27,7 @@ end
 
 H = nan(nBins,nF);
 medInt = nan(nF,1);
+emgParams = nan(nF,4); % [mu sigma tau A]
 for k = 1:nF
     img = frames{k};
     if isempty(img), continue; end
@@ -37,6 +38,9 @@ for k = 1:nF
     if areaCounts>0, counts = counts./areaCounts; end % PDF
     H(:,k) = counts(:);
     medInt(k) = median(pix);
+    [muW, sigW] = weightedStats(binCenters, counts);
+    params = fitEMGLSQ(binCenters(:), counts(:), [muW, max(sigW, eps), max(sigW, eps), max(counts)]);
+    emgParams(k,:) = params;
 end
 
 % Individual plots
@@ -44,8 +48,13 @@ for k = 1:nF
     figk = figure('Name',sprintf('Hist slice %d', k),'Color','w');
     set(figk,'Units','normalized','Position',[0.2 0.2 0.35 0.3]);
     axk = axes(figk); hold(axk,'on');
-    stairs(axk, binCenters, H(:,k), 'LineWidth', 1.5);
-    area(axk, binCenters, H(:,k), 'FaceAlpha',0.15, 'EdgeColor','none');
+    stairs(axk, binCenters, H(:,k), 'Color', cols(k,:), 'LineWidth', 1.5);
+    area(axk, binCenters, H(:,k), 'FaceColor', cols(k,:), 'FaceAlpha',0.15, 'EdgeColor','none');
+    % EMG fit overlay if available
+    if all(isfinite(emgParams(k,:))) && emgParams(k,2)>0 && emgParams(k,3)>0
+        emgVals = emgPDF(binCenters, emgParams(k,1), emgParams(k,2), emgParams(k,3), emgParams(k,4));
+        plot(axk, binCenters, emgVals, 'k--','LineWidth',1.2);
+    end
     [~, yMedBin] = min(abs(binCenters - medInt(k)));
     scatter(axk, binCenters(yMedBin), H(yMedBin,k), 60, 'filled','MarkerEdgeColor','k','LineWidth',0.8);
     xlabel(axk,'Pixel Intensity');
@@ -63,7 +72,7 @@ end
 figO = figure('Name','Overlay ROI PDFs','Color','w');
 set(figO,'Units','normalized','Position',[0 0 1 0.5]);
 axO = axes(figO); hold(axO,'on');
-cols = autumn(max(nF,2));
+cols = autumn(max(nF,2)); % match main script palette
 for k = 1:nF
     plot(axO, binCenters, H(:,k), 'Color', cols(k,:), 'LineWidth', 1.2);
 end
@@ -87,4 +96,53 @@ if isfield(vid,'roiPoly') && ~isempty(vid.roiPoly)
     mask = poly2mask(poly(:,1), poly(:,2), sz(1), sz(2)); return;
 end
 mask = true(sz(1), sz(2));
+end
+
+function [m, s] = weightedStats(x, w)
+if nargin < 2 || isempty(w), w = ones(size(x)); end
+mask = isfinite(x) & isfinite(w) & w>=0;
+x = x(mask); w = w(mask);
+if isempty(x) || sum(w)==0
+    m = NaN; s = NaN; return;
+end
+m = sum(w.*x)/sum(w);
+varw = sum(w.*(x-m).^2)/max(sum(w)-1,1);
+s = sqrt(varw);
+end
+
+function y = emgPDF(x, mu, sigma, tau, A)
+% Exponential-modified Gaussian PDF scaled by A
+sigma = max(sigma, eps);
+tau = max(tau, eps);
+lambda = 1./tau;
+y = zeros(size(x));
+pos = isfinite(x);
+if any(pos)
+    xp = x(pos);
+    arg = (sigma.^2 .* lambda) - (xp - mu);
+    y(pos) = (A .* lambda./2) .* exp((lambda/2).*(2*mu + lambda.*sigma.^2 - 2*xp)) ...
+        .* erfc(arg ./ (sqrt(2).*sigma));
+end
+end
+
+function params = fitEMGLSQ(x, y, seed)
+% Fit EMG (mu, sigma, tau, A) by LSQ; returns [mu sigma tau A]
+params = [NaN NaN NaN NaN];
+if numel(x) < 3 || numel(y) < 3, return; end
+if nargin < 3 || numel(seed) < 4
+    seed = [mean(x), std(x), std(x), max(y)];
+end
+mu0 = seed(1);
+logSig0 = log(max(seed(2), eps));
+logTau0 = log(max(seed(3), eps));
+logA0 = log(max(seed(4), eps));
+obj = @(p) sum( ( y - emgPDF(x, p(1), exp(p(2)), exp(p(3)), exp(p(4))) ).^2 );
+opts = optimset('Display','off');
+p0 = [mu0, logSig0, logTau0, logA0];
+try
+    p = fminsearch(obj, p0, opts);
+    params = [p(1), exp(p(2)), exp(p(3)), exp(p(4))];
+catch
+    % leave NaNs
+end
 end

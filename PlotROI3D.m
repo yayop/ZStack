@@ -30,6 +30,7 @@ zSel = zValsAll(histIdx);
 
 H = nan(nBins,nF);
 meanInt = nan(nF,1);
+medInt = nan(nF,1);
 for k = 1:nF
     img = frames{k};
     if isempty(img), continue; end
@@ -40,6 +41,7 @@ for k = 1:nF
     if areaCounts>0, counts = counts./areaCounts; end % PDF
     H(:,k) = counts(:);
     meanInt(k) = mean(pix);
+    medInt(k) = median(pix);
 end
 
 % reference z*: peak of mean intensity
@@ -63,6 +65,10 @@ for k = 1:nF
     yPoly = [yStep; flipud(yStep)];
     zPoly = [zStep; zeros(size(zStep))];
     fill3(axw, xPoly, yPoly, zPoly, cols(k,:), 'FaceAlpha',0.15,'EdgeColor','none');
+    % mark median intensity on PDF curve
+    [~, idxMed] = min(abs(binCenters - medInt(k)));
+    plot3(axw, xStep(1), binCenters(idxMed), H(idxMed,k), 'o', ...
+        'MarkerFaceColor', cols(k,:), 'MarkerEdgeColor', 'k', 'MarkerSize', 8, 'LineWidth', 0.8);
 end
 view(axw,45,30);
 xlabel(axw,'$z$ ($\mu$m)','Interpreter','latex');
